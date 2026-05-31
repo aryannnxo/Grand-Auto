@@ -51,6 +51,7 @@ const ProfilePage = () => {
         setNameInput(res.data.name || "");
         setBioInput(res.data.bio || "");
         
+        localStorage.setItem("userId", res.data._id || "");
         localStorage.setItem("userName", res.data.name || "");
         localStorage.setItem("userEmail", res.data.email || "");
         localStorage.setItem("userProfileImage", res.data.profileImage || "");

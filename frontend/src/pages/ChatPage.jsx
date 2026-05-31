@@ -5,6 +5,7 @@ import { Send, User as UserIcon, MessageSquare, CarFront, CheckCircle2 } from "l
 import Navbar from "../components/Navbar";
 import { Input } from "../components/ui/Input";
 import { Button } from "../components/ui/Button";
+import { getSocket } from "../utils/socket";
 
 const API = "http://localhost:5000";
 
@@ -34,7 +35,7 @@ const ChatPage = ({ isNested = false }) => {
   }, []);
 
   useEffect(() => {
-    // If there's a chatId in URL, try to select it
+    // Only select a chat if a specific chatId is present in the URL
     const params = new URLSearchParams(location.search);
     const chatId = params.get("chatId");
     if (chatId && conversations.length > 0) {
@@ -42,25 +43,62 @@ const ChatPage = ({ isNested = false }) => {
       if (chat) {
         handleSelectChat(chat);
       }
-    } else if (!activeChat && conversations.length > 0) {
-      // Auto select first chat
-      handleSelectChat(conversations[0]);
     }
+    // Do NOT auto-select the first chat — let the user choose
   }, [location.search, conversations]);
 
-  // Polling for active chat messages
+  // Keep activeChat in a ref so socket listeners can access the latest value
+  const activeChatRef = useRef(activeChat);
   useEffect(() => {
-    if (!activeChat) return;
-
-    fetchMessages(activeChat._id);
-    const interval = setInterval(() => {
-      fetchMessages(activeChat._id, true);
-      // Also silently update conversations to get latest unread status
-      fetchConversations(true);
-    }, 5000);
-
-    return () => clearInterval(interval);
+    activeChatRef.current = activeChat;
   }, [activeChat]);
+
+  // Fetch messages when activeChat changes
+  useEffect(() => {
+    if (activeChat) {
+      fetchMessages(activeChat._id);
+    }
+  }, [activeChat]);
+
+  // Listen for socket events
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
+
+    const handleNewMessage = (msg) => {
+      // If we are currently viewing this chat, add message and mark read
+      if (activeChatRef.current && msg.conversation === activeChatRef.current._id) {
+        setMessages(prev => {
+          if (prev.some(m => m._id === msg._id)) return prev;
+          return [...prev, msg];
+        });
+        
+        axios.patch(`${API}/api/chats/${msg.conversation}/read`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        }).catch(console.error);
+      }
+      // Always update conversation list (to reorder and update preview/unread status)
+      fetchConversations(true);
+    };
+
+    const handleMessageSent = (msg) => {
+      if (activeChatRef.current && msg.conversation === activeChatRef.current._id) {
+        setMessages(prev => {
+          if (prev.some(m => m._id === msg._id)) return prev;
+          return [...prev, msg];
+        });
+      }
+      fetchConversations(true);
+    };
+
+    socket.on("newMessage", handleNewMessage);
+    socket.on("messageSent", handleMessageSent);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+      socket.off("messageSent", handleMessageSent);
+    };
+  }, []);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });

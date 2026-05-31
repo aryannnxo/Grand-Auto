@@ -1,5 +1,6 @@
-// server.js
 const express = require('express');
+const http = require('http');
+const socketIo = require('socket.io');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const connectDB = require('./config/db');
@@ -20,6 +21,32 @@ dotenv.config();
 connectDB();
 
 const app = express();
+const server = http.createServer(app);
+
+// Initialize Socket.io
+const io = socketIo(server, {
+  cors: {
+    origin: "*", // Adjust for production if needed
+    methods: ["GET", "POST", "PATCH", "PUT", "DELETE"]
+  }
+});
+
+// Attach io to app so routes can use it (e.g. req.app.locals.io)
+app.locals.io = io;
+
+io.on('connection', (socket) => {
+  const userId = socket.handshake.query.userId;
+  
+  if (userId) {
+    // Join a private room for this user
+    socket.join(`user_${userId}`);
+    console.log(`Socket connected: User ${userId} (Socket ID: ${socket.id})`);
+  }
+
+  socket.on('disconnect', () => {
+    console.log(`Socket disconnected: ${socket.id}`);
+  });
+});
 
 // Middleware
 app.use(cors());
@@ -70,6 +97,6 @@ app.use((err, req, res, next) => {
 // Server listening port
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

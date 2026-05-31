@@ -57,6 +57,22 @@ router.post("/start", protect, async (req, res) => {
   }
 });
 
+// @route   GET /api/chats/unread-count
+// @desc    Get unread message count for logged-in user
+// @access  Private
+router.get("/unread-count", protect, async (req, res) => {
+  try {
+    const unreadCount = await Conversation.countDocuments({
+      participants: req.user.id,
+      unreadBy: req.user.id
+    });
+    res.json({ unreadCount });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ msg: "Server Error" });
+  }
+});
+
 // @route   GET /api/chats
 // @desc    Get all conversations for logged-in user
 // @access  Private
@@ -150,6 +166,26 @@ router.post("/:id/messages", protect, async (req, res) => {
     
     await conversation.save();
 
+    // Populate sender info for the new message
+    await message.populate("sender", "name email profileImage");
+
+    // Socket.io real-time updates
+    const io = req.app.locals.io;
+    if (io) {
+      // Emit the full message object to the receiver
+      io.to(`user_${receiverId}`).emit("newMessage", message);
+      
+      // Also notify the sender (so they get immediate update without refetching)
+      io.to(`user_${req.user.id}`).emit("messageSent", message);
+
+      // Recalculate unread count for the receiver and notify them
+      const unreadCount = await Conversation.countDocuments({
+        participants: receiverId,
+        unreadBy: receiverId
+      });
+      io.to(`user_${receiverId}`).emit("unreadCountUpdated", { unreadCount });
+    }
+
     res.status(201).json(message);
   } catch (err) {
     console.error(err.message);
@@ -182,6 +218,16 @@ router.patch("/:id/read", protect, async (req, res) => {
       { conversation: req.params.id, receiver: req.user.id, isRead: false },
       { $set: { isRead: true } }
     );
+
+    // Socket.io: Notify user of their new unread count
+    const io = req.app.locals.io;
+    if (io) {
+      const unreadCount = await Conversation.countDocuments({
+        participants: req.user.id,
+        unreadBy: req.user.id
+      });
+      io.to(`user_${req.user.id}`).emit("unreadCountUpdated", { unreadCount });
+    }
 
     res.json({ msg: "Conversation marked as read" });
   } catch (err) {

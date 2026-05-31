@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { User, Shield, Car, LayoutDashboard, Menu, X, LogOut, FileText, Wrench, Bell, CheckCircle, XCircle, AlertTriangle, RefreshCw, CreditCard, Search, MessageSquare } from "lucide-react";
 import axios from "axios";
+import { connectSocket, disconnectSocket, getSocket } from "../utils/socket";
 
 const API = "http://localhost:5000";
 
@@ -21,6 +22,7 @@ const Navbar = () => {
 
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [chatUnreadCount, setChatUnreadCount] = useState(0);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
@@ -38,17 +40,53 @@ const Navbar = () => {
     }
   };
 
+  const fetchChatUnread = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+      const res = await axios.get(`${API}/api/chats/unread-count`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setChatUnreadCount(res.data.unreadCount || 0);
+    } catch (err) {
+      // silently ignore
+    }
+  };
+
   useEffect(() => {
     let intervalId;
     if (isLoggedIn) {
       fetchNotifications();
-      intervalId = setInterval(fetchNotifications, 15000);
+      fetchChatUnread();
+      
+      // Connect Socket.io for real-time chat unread counts
+      const userId = localStorage.getItem("userId");
+      if (userId) {
+        const socket = connectSocket(userId);
+        if (socket) {
+          socket.on("unreadCountUpdated", (data) => {
+            setChatUnreadCount(data.unreadCount);
+          });
+        }
+      }
+
+      // Keep polling just for notifications
+      intervalId = setInterval(() => {
+        fetchNotifications();
+      }, 15000);
     } else {
       setNotifications([]);
       setUnreadCount(0);
+      setChatUnreadCount(0);
+      disconnectSocket();
     }
+    
     return () => {
       if (intervalId) clearInterval(intervalId);
+      const socket = getSocket();
+      if (socket) {
+        socket.off("unreadCountUpdated");
+      }
     };
   }, [isLoggedIn]);
 
@@ -109,15 +147,24 @@ const Navbar = () => {
   const getNotificationIcon = (type) => {
     switch (type) {
       case "booking_approved":
+      case "mechanic_approved":
         return <CheckCircle size={16} />;
       case "booking_rejected":
+      case "mechanic_rejected":
         return <XCircle size={16} />;
       case "payment_successful":
         return <CreditCard size={16} />;
       case "booking_cancelled":
+      case "mechanic_cancelled":
         return <AlertTriangle size={16} />;
       case "refund_processed":
         return <RefreshCw size={16} />;
+      case "mechanic_assigned":
+        return <User size={16} />;
+      case "mechanic_in_progress":
+        return <Wrench size={16} />;
+      case "mechanic_completed":
+        return <CheckCircle2 size={16} />;
       default:
         return <Bell size={16} />;
     }
@@ -126,15 +173,23 @@ const Navbar = () => {
   const getIconStyle = (type) => {
     switch (type) {
       case "booking_approved":
+      case "mechanic_approved":
+      case "mechanic_completed":
         return "bg-emerald-50 text-emerald-500 border-emerald-100";
       case "booking_rejected":
+      case "mechanic_rejected":
         return "bg-rose-50 text-rose-500 border-rose-100";
       case "payment_successful":
         return "bg-emerald-50 text-emerald-500 border-emerald-100";
       case "booking_cancelled":
+      case "mechanic_cancelled":
         return "bg-amber-50 text-amber-500 border-amber-100";
       case "refund_processed":
         return "bg-cyan-50 text-cyan-500 border-cyan-100";
+      case "mechanic_assigned":
+        return "bg-indigo-50 text-indigo-500 border-indigo-100";
+      case "mechanic_in_progress":
+        return "bg-blue-50 text-blue-500 border-blue-100";
       default:
         return "bg-slate-50 text-slate-500 border-slate-200";
     }
@@ -159,6 +214,7 @@ const Navbar = () => {
   }, []);
 
   const handleLogout = () => {
+    disconnectSocket();
     localStorage.clear();
     navigate("/");
     window.location.reload();
@@ -246,6 +302,19 @@ const Navbar = () => {
                 title="Messages"
               >
                 <MessageSquare size={18} />
+                <AnimatePresence>
+                  {chatUnreadCount > 0 && (
+                    <motion.span
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 15 }}
+                      className="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-blue-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm"
+                    >
+                      {chatUnreadCount > 9 ? "9+" : chatUnreadCount}
+                    </motion.span>
+                  )}
+                </AnimatePresence>
               </Link>
 
               {/* Notifications Bell */}
@@ -419,16 +488,18 @@ const Navbar = () => {
                           <User size={16} />
                           Profile
                         </Link>
-                        
-                        <Link 
-                          to={userRole === 'admin' ? '/admin/dashboard' : isVerifiedOwner ? '/seller/dashboard' : '/dashboard'} 
-                          onClick={() => setProfileDropdownOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium"
-                        >
-                          <LayoutDashboard size={16} />
-                          Dashboard
-                        </Link>
 
+                        {(userRole === 'admin' || isVerifiedOwner) && (
+                          <Link 
+                            to={userRole === 'admin' ? '/admin/dashboard' : '/seller/dashboard'} 
+                            onClick={() => setProfileDropdownOpen(false)}
+                            className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium"
+                          >
+                            <LayoutDashboard size={16} />
+                            Dashboard
+                          </Link>
+                        )}
+                        
                         <Link 
                           to={userRole === 'admin' ? '/admin/messages' : isVerifiedOwner ? '/seller/messages' : '/messages'} 
                           onClick={() => setProfileDropdownOpen(false)}

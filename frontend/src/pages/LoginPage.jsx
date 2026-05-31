@@ -27,6 +27,7 @@ const LoginPage = () => {
 
       if (token) localStorage.setItem("token", token);
       if (user) {
+        localStorage.setItem("userId", user._id || "");
         localStorage.setItem("userName", user.name || "");
         localStorage.setItem("userEmail", user.email || data.email);
         localStorage.setItem("userRole", user.role || "user");

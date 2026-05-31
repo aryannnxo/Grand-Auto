@@ -403,18 +403,112 @@ router.put("/rentals/:id/delivery-status", protect, admin, async (req, res) => {
 // PAYMENTS MANAGEMENT ROUTES
 // ==========================================
 
+// GET /api/admin/payments/summary
+router.get("/payments/summary", protect, admin, async (req, res) => {
+  try {
+    const pipeline = [
+      {
+        $group: {
+          _id: null,
+          totalRevenue: {
+            $sum: {
+              $cond: [{ $eq: ["$paymentStatus", "paid"] }, "$amountPaid", 0]
+            }
+          },
+          esewaPayments: {
+            $sum: {
+              $cond: [
+                { $and: [{ $eq: ["$paymentStatus", "paid"] }, { $eq: ["$paymentMethod", "eSewa"] }] },
+                "$amountPaid",
+                0
+              ]
+            }
+          },
+          cashPayments: {
+            $sum: {
+              $cond: [
+                { $and: [{ $eq: ["$paymentStatus", "paid"] }, { $eq: ["$paymentMethod", "Cash"] }] },
+                "$amountPaid",
+                0
+              ]
+            }
+          },
+          pendingBalances: {
+            $sum: {
+              $cond: [{ $in: ["$paymentStatus", ["pending", "unpaid"] ]}, "$remainingAmount", 0]
+            }
+          },
+          paidCount: { $sum: { $cond: [{ $eq: ["$paymentStatus", "paid"] }, 1, 0] } },
+          unpaidCount: { $sum: { $cond: [{ $eq: ["$paymentStatus", "unpaid"] }, 1, 0] } },
+          pendingCount: { $sum: { $cond: [{ $eq: ["$paymentStatus", "pending"] }, 1, 0] } },
+          failedCount: { $sum: { $cond: [{ $eq: ["$paymentStatus", "failed"] }, 1, 0] } },
+          refundedCount: { $sum: { $cond: [{ $eq: ["$paymentStatus", "refunded"] }, 1, 0] } },
+        }
+      }
+    ];
+
+    const result = await Booking.aggregate(pipeline);
+    
+    if (result.length > 0) {
+      res.json(result[0]);
+    } else {
+      res.json({
+        totalRevenue: 0,
+        esewaPayments: 0,
+        cashPayments: 0,
+        pendingBalances: 0,
+        paidCount: 0,
+        unpaidCount: 0,
+        pendingCount: 0,
+        failedCount: 0,
+        refundedCount: 0
+      });
+    }
+  } catch (err) {
+    console.error("Admin fetch payments summary error:", err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
 // GET /api/admin/payments
 router.get("/payments", protect, admin, async (req, res) => {
   try {
-    const { status, method } = req.query;
+    const { status, method, search, dateFrom, dateTo } = req.query;
     let query = {};
+    
     if (status) query.paymentStatus = status;
     if (method) query.paymentMethod = method;
 
-    const payments = await Booking.find(query)
+    if (dateFrom && dateTo) {
+      query.createdAt = {
+        $gte: new Date(dateFrom),
+        $lte: new Date(dateTo)
+      };
+    }
+
+    // To support deep searching (user name/email, vehicle name), we can populate and then filter,
+    // or use a complex aggregation. For simplicity and robustness with Mongoose, we'll fetch populated
+    // and filter in memory if a search string exists.
+    
+    let payments = await Booking.find(query)
       .populate("user", "name email")
-      .populate("vehicle", "name brand model")
+      .populate("vehicle", "name brand model images")
       .sort({ createdAt: -1 });
+
+    if (search) {
+      const s = search.toLowerCase();
+      payments = payments.filter(p => {
+        return (
+          p._id.toString().toLowerCase().includes(s) ||
+          (p.transactionId && p.transactionId.toLowerCase().includes(s)) ||
+          (p.user && p.user.name && p.user.name.toLowerCase().includes(s)) ||
+          (p.user && p.user.email && p.user.email.toLowerCase().includes(s)) ||
+          (p.vehicle && p.vehicle.brand && p.vehicle.brand.toLowerCase().includes(s)) ||
+          (p.vehicle && p.vehicle.model && p.vehicle.model.toLowerCase().includes(s))
+        );
+      });
+    }
+
     res.json(payments);
   } catch (err) {
     console.error("Admin fetch payments error:", err);
@@ -425,64 +519,72 @@ router.get("/payments", protect, admin, async (req, res) => {
 // PUT /api/admin/payments/:id/status
 router.put("/payments/:id/status", protect, admin, async (req, res) => {
   try {
-    const { paymentStatus } = req.body;
+    const { paymentStatus, paidAmount, transactionId, adminNote } = req.body;
+
+    // Normalize to lowercase to match Mongoose enum: paid/unpaid/pending/failed/refunded
+    const normalizedStatus = paymentStatus ? paymentStatus.toLowerCase() : null;
+
+    const allowedStatuses = ["paid", "unpaid", "pending", "failed", "refunded"];
+    if (!normalizedStatus || !allowedStatuses.includes(normalizedStatus)) {
+      return res.status(400).json({ msg: `Invalid status. Allowed: ${allowedStatuses.join(", ")}` });
+    }
+
     const booking = await Booking.findById(req.params.id).populate("vehicle");
     if (!booking) {
       return res.status(404).json({ msg: "Booking/Payment not found" });
     }
 
     const oldPaymentStatus = booking.paymentStatus;
-    booking.paymentStatus = paymentStatus;
-    
-    // Automatically update logic if marked as Paid
-    if (paymentStatus === "Paid") {
-      booking.status = "Confirmed"; // Booking Approved
-      booking.amountPaid = booking.totalPrice;
-      booking.remainingAmount = 0;
+    booking.paymentStatus = normalizedStatus;
+
+    if (normalizedStatus === "paid") {
+      // Only update booking status if it's in a state that makes sense to confirm
+      if (["approved-awaiting-payment", "confirmed-awaiting-cash-payment"].includes(booking.status)) {
+        booking.status = "confirmed";
+      }
+      const paid = paidAmount !== undefined && paidAmount !== "" ? Number(paidAmount) : booking.totalPrice;
+      booking.amountPaid = paid;
+      booking.remainingAmount = Math.max(0, booking.totalPrice - paid);
+      if (transactionId && transactionId.trim() !== "") booking.transactionId = transactionId.trim();
       if (!booking.paidAt) booking.paidAt = new Date();
-    } else if (paymentStatus === "Unpaid") {
+    } else if (normalizedStatus === "unpaid") {
       booking.amountPaid = 0;
       booking.remainingAmount = booking.totalPrice;
-    } else if (paymentStatus === "Refunded") {
-      booking.status = "Cancelled";
-    } else if (paymentStatus === "Failed") {
-      booking.status = "Cancelled";
+    } else if (normalizedStatus === "pending") {
+      // Keep existing amounts as-is
+    } else if (normalizedStatus === "refunded") {
+      booking.status = "cancelled";
+    } else if (normalizedStatus === "failed") {
+      booking.status = "cancelled";
     }
 
     await booking.save();
 
-    // Trigger Notifications on status changes
-    if (oldPaymentStatus !== paymentStatus) {
+    // Trigger Notifications only when status actually changes
+    if (oldPaymentStatus !== normalizedStatus) {
       try {
         const vehicleName = booking.vehicle ? `${booking.vehicle.brand} ${booking.vehicle.model}` : "Vehicle";
-        
-        if (paymentStatus === "Paid") {
+
+        if (normalizedStatus === "paid") {
           await Notification.create({
             user: booking.user,
             title: "Payment Successful",
-            message: `Your payment of Rs. ${booking.totalPrice.toLocaleString()} for vehicle ${vehicleName} was successful.`,
+            message: `Your payment of Rs. ${booking.amountPaid.toLocaleString()} for vehicle ${vehicleName} was confirmed by an Admin.`,
             type: "payment_successful"
           });
-
-          await Notification.create({
-            user: booking.user,
-            title: "Booking Approved",
-            message: `Your booking request for vehicle ${vehicleName} has been approved and confirmed.`,
-            type: "booking_approved"
-          });
-        } else if (paymentStatus === "Refunded") {
+        } else if (normalizedStatus === "refunded") {
           await Notification.create({
             user: booking.user,
             title: "Refund Processed",
-            message: `Your refund of Rs. ${booking.totalPrice.toLocaleString()} for vehicle ${vehicleName} has been processed successfully.`,
+            message: `Your refund for vehicle ${vehicleName} has been processed successfully.`,
             type: "refund_processed"
           });
-        } else if (paymentStatus === "Failed") {
+        } else if (normalizedStatus === "failed") {
           await Notification.create({
             user: booking.user,
-            title: "Booking Rejected",
-            message: `Your booking request for vehicle ${vehicleName} has been rejected.`,
-            type: "booking_rejected"
+            title: "Payment Failed",
+            message: `Your payment for vehicle ${vehicleName} has been marked as failed.`,
+            type: "info"
           });
         }
       } catch (notifErr) {
@@ -490,10 +592,10 @@ router.put("/payments/:id/status", protect, admin, async (req, res) => {
       }
     }
 
-    res.json({ msg: "Payment status updated", booking });
+    res.json({ msg: "Payment status updated successfully", booking });
   } catch (err) {
-    console.error("Admin update payment status error:", err);
-    res.status(500).json({ msg: "Server error" });
+    console.error("Admin update payment status error:", err.message, err.stack);
+    res.status(500).json({ msg: err.message || "Server error" });
   }
 });
 

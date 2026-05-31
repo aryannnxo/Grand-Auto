@@ -6,7 +6,7 @@ import {
   Wrench, AlertTriangle, Car, ClipboardCheck, MapPin, 
   CalendarDays, FileText, ChevronLeft, CheckCircle2, 
   Shield, Lock, Clock, Navigation, Check, Battery, 
-  Wind, Droplet, Star, Phone, Camera, ArrowRight, Home
+  Wind, Droplet, Star, Phone, Camera, ArrowRight, Home, User
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { Button } from "../components/ui/Button";
@@ -37,11 +37,14 @@ const BookMechanicPage = () => {
     serviceType: "",
     vehicleModel: "",
     location: "",
+    city: "",
     requestedDate: "",
     requestedTime: "",
     description: "",
     isEmergency: false,
-    uploadedPhotos: false // Mock state
+    uploadedPhotos: false,
+    contactName: "",
+    contactPhone: ""
   });
   
   const [loading, setLoading] = useState(false);
@@ -65,7 +68,7 @@ const BookMechanicPage = () => {
     e.preventDefault();
     setError("");
     
-    if (!formData.serviceType || !formData.location || !formData.requestedDate || !formData.requestedTime || !formData.description) {
+    if (!formData.serviceType || !formData.location || !formData.city || !formData.requestedDate || !formData.requestedTime || !formData.description || !formData.contactName || !formData.contactPhone) {
       setError("Please fill in all required fields.");
       return;
     }
@@ -88,8 +91,13 @@ ${formData.description}
       const payload = {
         serviceType: formData.serviceType,
         location: formData.location,
+        city: formData.city,
         requestedDate: dateTime.toISOString(),
+        preferredTime: formData.requestedTime,
         description: finalDescription,
+        isEmergency: formData.isEmergency,
+        contactName: formData.contactName,
+        contactPhone: formData.contactPhone
       };
       
       if (vehicleId) payload.vehicle = vehicleId;
@@ -285,6 +293,13 @@ ${formData.description}
                       </div>
                     </div>
                     <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider text-[11px]">City</label>
+                      <div className="relative">
+                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input type="text" name="city" value={formData.city} onChange={handleChange} required placeholder="City name" className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-[#161616] border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-900 dark:focus:ring-white transition-all text-sm font-medium placeholder-slate-400" />
+                      </div>
+                    </div>
+                    <div>
                       <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider text-[11px]">Date</label>
                       <div className="relative">
                         <CalendarDays className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
@@ -296,6 +311,23 @@ ${formData.description}
                       <div className="relative">
                         <Clock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                         <input type="time" name="requestedTime" value={formData.requestedTime} onChange={handleChange} required className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-[#161616] border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-900 dark:focus:ring-white transition-all text-sm font-medium placeholder-slate-400 dark:[color-scheme:dark]" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider text-[11px]">Contact Name</label>
+                      <div className="relative">
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input type="text" name="contactName" value={formData.contactName} onChange={handleChange} required placeholder="Your full name" className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-[#161616] border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-900 dark:focus:ring-white transition-all text-sm font-medium placeholder-slate-400" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider text-[11px]">Phone Number</label>
+                      <div className="relative">
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                        <input type="text" name="contactPhone" value={formData.contactPhone} onChange={handleChange} required placeholder="Your phone number" className="w-full pl-12 pr-4 py-4 bg-slate-50 dark:bg-[#161616] border border-slate-200 dark:border-slate-800 rounded-xl focus:outline-none focus:ring-1 focus:ring-slate-900 dark:focus:ring-white transition-all text-sm font-medium placeholder-slate-400" />
                       </div>
                     </div>
                   </div>

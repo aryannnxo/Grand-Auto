@@ -8,6 +8,7 @@ import VerifyOtpPage from "./pages/VerifyOtpPage";
 import AddVehiclePage from "./pages/AddVehiclePage";
 import VehiclesPage from "./pages/VehiclesPage";
 import Dashboard from "./pages/Dashboard";
+import UserDashboard from "./pages/UserDashboard";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminLayout from "./components/AdminLayout";
 import ListingsPage from "./pages/ListingsPage";
@@ -26,6 +27,7 @@ import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import PaymentFailurePage from "./pages/PaymentFailurePage";
 import BookMechanicPage from "./pages/BookMechanicPage";
 import MyMechanicRequestsPage from "./pages/MyMechanicRequestsPage";
+import MechanicRequestDetailPage from "./pages/MechanicRequestDetailPage";
 import AdminMechanicsPage from "./pages/AdminMechanicsPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminUserDetailsPage from "./pages/AdminUserDetailsPage";
@@ -45,6 +47,7 @@ function App() {
       <Route path="/profile" element={<ProfilePage />} />
       <Route path="/verify-otp" element={<VerifyOtpPage />} />
       <Route path="/dashboard" element={<Dashboard />} />
+      <Route path="/user-dashboard" element={<UserDashboard />} />
       <Route path="/add-vehicle" element={<AddVehiclePage />} />
       <Route path="/edit-vehicle/:id" element={<AddVehiclePage />} />
       <Route path="/vehicles" element={<VehiclesPage />} />
@@ -76,6 +79,7 @@ function App() {
       </Route>
       <Route path="/mechanic/book" element={<BookMechanicPage />} />
       <Route path="/mechanic/my-requests" element={<MyMechanicRequestsPage />} />
+      <Route path="/mechanic-requests/:id" element={<MechanicRequestDetailPage />} />
       <Route path="/payment/success" element={<PaymentSuccessPage />} />
       <Route path="/payment/failure" element={<PaymentFailurePage />} />
     </Routes>
