@@ -18,6 +18,7 @@ import ReviewsSection from '../components/vehicle/ReviewsSection';
 import RelatedCars from '../components/vehicle/RelatedCars';
 import ImageGallery from '../components/vehicle/ImageGallery';
 import Footer from '../components/Footer';
+import OwnerContactCard from '../components/vehicle/OwnerContactCard';
 
 const API = "http://localhost:5000";
 
@@ -112,7 +113,10 @@ const VehicleDetailsPage = () => {
               setActiveImgIdx={setActiveImgIdx} 
               setIsFullscreen={setIsFullscreen} 
            />
-           <CarSummaryCard vehicle={vehicle} />
+           <div className="flex flex-col gap-6">
+             <CarSummaryCard vehicle={vehicle} />
+             <OwnerContactCard vehicle={vehicle} />
+           </div>
         </div>
         
 

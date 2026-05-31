@@ -241,7 +241,7 @@ const Navbar = () => {
             <div className="flex items-center gap-3">
               {/* Messages Button */}
               <Link 
-                to={userRole === "admin" ? "/admin/messages" : (isVerifiedOwner ? "/seller/messages" : "/dashboard?view=messages")}
+                to={userRole === "admin" ? "/admin/messages" : (isVerifiedOwner ? "/seller/messages" : "/messages")}
                 className="relative p-2 rounded-full transition-all duration-300 focus:outline-none flex items-center justify-center w-10 h-10 border bg-slate-50 border-slate-100 hover:bg-slate-100 text-slate-600 hover:text-slate-900"
                 title="Messages"
               >
@@ -427,6 +427,15 @@ const Navbar = () => {
                         >
                           <LayoutDashboard size={16} />
                           Dashboard
+                        </Link>
+
+                        <Link 
+                          to={userRole === 'admin' ? '/admin/messages' : isVerifiedOwner ? '/seller/messages' : '/messages'} 
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium"
+                        >
+                          <MessageSquare size={16} />
+                          Messages
                         </Link>
                         
                         {/* Divider */}

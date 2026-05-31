@@ -147,7 +147,7 @@ const ChatPage = ({ isNested = false }) => {
   const chatContent = (
     <>
       {/* Left Side: Conversation List */}
-      <div className="w-full md:w-1/3 lg:w-1/4 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden h-full">
+      <div className={`w-full md:w-1/3 lg:w-1/4 bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden h-full ${activeChat ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-slate-200 bg-slate-50/50">
             <h2 className="text-lg font-bold font-heading flex items-center gap-2">
               <MessageSquare size={18} className="text-primary-500" /> Messages
@@ -210,13 +210,23 @@ const ChatPage = ({ isNested = false }) => {
               {/* Chat Header */}
               <div className="p-4 border-b border-slate-200 flex items-center justify-between bg-white rounded-t-2xl">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center">
+                  {/* Back button (mobile only) */}
+                  <button 
+                    onClick={() => {
+                      setActiveChat(null);
+                      navigate(location.pathname, { replace: true });
+                    }}
+                    className="md:hidden mr-1 p-2 -ml-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                  </button>
+                  <div className="w-10 h-10 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center shrink-0">
                     <UserIcon size={20} />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 text-sm">{getOtherUser(activeChat).name || 'User'}</h3>
-                    <p className="text-xs text-slate-500 flex items-center gap-1">
-                      <CarFront size={12} /> {activeChat.vehicle?.year} {activeChat.vehicle?.brand} {activeChat.vehicle?.model}
+                  <div className="overflow-hidden">
+                    <h3 className="font-bold text-slate-900 text-sm truncate">{getOtherUser(activeChat).name || 'User'}</h3>
+                    <p className="text-xs text-slate-500 flex items-center gap-1 truncate">
+                      <CarFront size={12} className="shrink-0" /> <span className="truncate">{activeChat.vehicle?.year} {activeChat.vehicle?.brand} {activeChat.vehicle?.model}</span>
                     </p>
                   </div>
                 </div>

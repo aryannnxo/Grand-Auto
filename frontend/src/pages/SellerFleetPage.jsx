@@ -89,7 +89,7 @@ const SellerFleetPage = () => {
             >
               <div className="relative h-56 overflow-hidden">
                 <img 
-                  src={`${API}${car.images?.[0]?.url || ""}`} 
+                  src={`${API}${car.images?.[0]?.url || car.images?.[0] || ""}`} 
                   alt={car.name} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />

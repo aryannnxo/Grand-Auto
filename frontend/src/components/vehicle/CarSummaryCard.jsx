@@ -60,43 +60,6 @@ const CarSummaryCard = ({ vehicle }) => {
         >
           Rent Now
         </Button>
-        <Button 
-          variant="outline"
-          className="w-full py-4 text-slate-700 font-bold text-sm rounded-lg transition-all mb-4 border-slate-200 hover:bg-slate-50"
-          onClick={async () => {
-            const token = localStorage.getItem("token");
-            if (!token) {
-              navigate('/login');
-              return;
-            }
-            try {
-              const res = await axios.post("http://localhost:5000/api/chats/start", 
-                { vehicleId: vehicle._id },
-                { headers: { Authorization: `Bearer ${token}` } }
-              );
-              
-              const userRole = localStorage.getItem("userRole");
-              const isVerifiedOwner = localStorage.getItem("isVerifiedOwner") === "true";
-              let chatPath = "/dashboard";
-              let searchParams = "?view=messages&chatId=" + res.data._id;
-              
-              if (userRole === "admin") {
-                chatPath = "/admin/messages";
-                searchParams = "?chatId=" + res.data._id;
-              } else if (isVerifiedOwner) {
-                chatPath = "/seller/messages";
-                searchParams = "?chatId=" + res.data._id;
-              }
-              
-              navigate(`${chatPath}${searchParams}`);
-            } catch (err) {
-              alert(err.response?.data?.msg || "Failed to start chat");
-            }
-          }}
-        >
-          Chat with Owner
-        </Button>
-
         {/* Location & Compare */}
         <div className="flex items-center justify-between text-[12px] text-slate-500 font-medium pt-4 border-t border-slate-100">
            <div className="flex items-center gap-1.5">

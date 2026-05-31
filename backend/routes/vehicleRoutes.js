@@ -260,7 +260,7 @@ router.get("/similar", async (req, res) => {
 // ✅ GET single vehicle by ID
 router.get("/:id", async (req, res) => {
   try {
-    const vehicle = await Vehicle.findById(req.params.id);
+    const vehicle = await Vehicle.findById(req.params.id).populate("owner", "name profileImage isVerifiedOwner");
     if (!vehicle) {
       return res.status(404).json({ msg: "Vehicle not found" });
     }

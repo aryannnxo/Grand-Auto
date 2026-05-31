@@ -418,38 +418,45 @@ const BookingPage = () => {
                 {/* STEP 3: REVIEW & SUBMIT */}
                 {step === 3 && (
                   <motion.div key="step3" variants={stepVariants} initial="hidden" animate="visible" exit="exit">
-                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Payment Preference</h3>
-                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Choose how you'd like to pay after owner approval.</p>
-                    
-                    <div className="grid sm:grid-cols-2 gap-4 mb-8">
-                      <div onClick={() => setPaymentMethod('eSewa')} className={`cursor-pointer p-4 rounded-xl border transition-colors flex items-center gap-4 ${paymentMethod === 'eSewa' ? 'border-[#60bb46] bg-[#60bb46]/5 dark:bg-[#60bb46]/10' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111] hover:border-slate-300 dark:hover:border-slate-700'}`}>
-                        <div className="w-12 h-12 rounded-lg bg-white border border-slate-100 p-2 flex items-center justify-center shrink-0">
-                          <img src="https://esewa.com.np/common/images/esewa-logo.png" alt="eSewa" className="w-full object-contain" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-sm text-slate-900 dark:text-white">eSewa</h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">Digital Wallet</p>
-                        </div>
-                      </div>
+                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Review & Submit</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">
+                      Confirm your booking details before sending the request to the owner.
+                    </p>
 
-                      <div onClick={() => setPaymentMethod('Cash')} className={`cursor-pointer p-4 rounded-xl border transition-colors flex items-center gap-4 ${paymentMethod === 'Cash' ? 'border-slate-900 bg-slate-50/50 dark:border-white dark:bg-slate-800/50' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111] hover:border-slate-300 dark:hover:border-slate-700'}`}>
-                        <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-sm font-bold shrink-0 ${paymentMethod === 'Cash' ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                          NPR
+                    {/* Booking Summary */}
+                    <div className="space-y-0 mb-6 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+                      {[
+                        { label: 'Vehicle', value: `${vehicle?.brand} ${vehicle?.model}` },
+                        { label: 'Pickup Date', value: form.startDate ? new Date(form.startDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '—' },
+                        { label: 'Return Date', value: form.endDate ? new Date(form.endDate).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : '—' },
+                        { label: 'Duration', value: `${bookingDays} ${bookingDays === 1 ? 'day' : 'days'}` },
+                        { label: 'Pickup Method', value: form.pickupMethod },
+                        { label: 'Pickup Location', value: form.pickupLocation || vehicle?.location },
+                      ].map((row, i) => (
+                        <div key={i} className={`flex justify-between items-center px-5 py-3.5 text-sm ${i % 2 === 0 ? 'bg-slate-50 dark:bg-slate-900/40' : 'bg-white dark:bg-transparent'}`}>
+                          <span className="text-slate-500 dark:text-slate-400">{row.label}</span>
+                          <span className="font-semibold text-slate-900 dark:text-white text-right max-w-[55%]">{row.value}</span>
                         </div>
-                        <div>
-                          <h4 className="font-medium text-sm text-slate-900 dark:text-white">Cash</h4>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">Pay on hand-over</p>
+                      ))}
+                      {deliveryFee > 0 && (
+                        <div className="flex justify-between items-center px-5 py-3.5 text-sm bg-slate-50 dark:bg-slate-900/40">
+                          <span className="text-slate-500 dark:text-slate-400">Logistics Fee</span>
+                          <span className="font-semibold text-slate-900 dark:text-white">Rs. {deliveryFee.toLocaleString()}</span>
                         </div>
-                       </div>
+                      )}
+                      <div className="flex justify-between items-center px-5 py-4 bg-slate-900 dark:bg-white">
+                        <span className="font-bold text-white dark:text-slate-900 text-sm">Total Amount</span>
+                        <span className="font-bold text-white dark:text-slate-900 text-lg">Rs. {totalPrice.toLocaleString()}</span>
+                      </div>
                     </div>
 
-                    {/* Approval notice */}
-                    <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 flex items-start gap-3">
-                      <Info size={16} className="text-blue-500 mt-0.5 shrink-0" />
+                    {/* Owner Approval Notice */}
+                    <div className="mb-6 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 flex items-start gap-3">
+                      <Info size={16} className="text-amber-500 mt-0.5 shrink-0" />
                       <div>
-                        <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Payment after owner approval</p>
-                        <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed mt-0.5">
-                          Your booking request will be sent to the owner. Payment will only be required once the owner approves your request. You'll receive a notification when it's approved.
+                        <p className="text-xs font-bold text-amber-800 dark:text-amber-300">Owner Approval Required</p>
+                        <p className="text-xs text-amber-700 dark:text-amber-400 leading-relaxed mt-0.5">
+                          Your request will be sent to the owner for review. <strong>No payment is taken now.</strong> You'll choose how to pay (Cash or eSewa) only after the owner approves your booking.
                         </p>
                       </div>
                     </div>
@@ -464,12 +471,12 @@ const BookingPage = () => {
 
                     <div className="mt-8 flex justify-between items-center gap-4">
                       <button type="button" onClick={prevStep} className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Back</button>
-                      <Button 
-                        onClick={handleSubmit} 
-                        className="w-full sm:w-auto px-8 h-12 text-sm font-medium rounded-xl transition-colors flex items-center justify-center bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white" 
+                      <Button
+                        onClick={handleSubmit}
+                        className="w-full sm:w-auto px-8 h-12 text-sm font-semibold rounded-xl transition-colors flex items-center justify-center bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white"
                         disabled={loading}
                       >
-                        {loading ? 'Submitting...' : 'Submit Booking Request'}
+                        {loading ? 'Submitting...' : 'Send Booking Request →'}
                       </Button>
                     </div>
                   </motion.div>

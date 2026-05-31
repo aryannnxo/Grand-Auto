@@ -426,7 +426,7 @@ const SellerBookingsPage = () => {
                 {/* Car Info */}
                 <div className="flex items-center gap-6 w-full xl:w-1/3">
                   <div className="w-32 h-24 rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden shrink-0">
-                    <img src={`${API}${booking.vehicle?.images?.[0]?.url || ""}`} alt="car" className="w-full h-full object-cover" />
+                    <img src={`${API}${booking.vehicle?.images?.[0]?.url || booking.vehicle?.images?.[0] || ""}`} alt="car" className="w-full h-full object-cover" />
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white">{booking.vehicle?.name}</h3>

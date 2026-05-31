@@ -58,7 +58,7 @@ const BookingPaymentPage = () => {
 
     try {
       if (paymentMethod === 'Cash') {
-        // Confirm Cash → status: confirmed-awaiting-cash-payment
+        // ── Cash: confirm cash → status: confirmed-awaiting-cash-payment ──
         await axios.put(
           `${API}/api/bookings/${bookingId}/select-cash`,
           {},
@@ -68,19 +68,50 @@ const BookingPaymentPage = () => {
         setTimeout(() => navigate('/profile'), 2500);
 
       } else {
-        // eSewa — call mock-success since UAT sandbox is offline
-        setSuccess('Processing eSewa payment...');
+        // ── eSewa: call initiate → get signed params → POST form to eSewa sandbox ──
+        setSuccess('Preparing eSewa payment...');
+
         const res = await axios.post(
-          `${API}/api/payments/esewa/mock-success`,
+          `${API}/api/payments/esewa/initiate`,
           { bookingId },
           { headers: { Authorization: `Bearer ${token}` } }
         );
-        setSuccess('eSewa payment successful! Redirecting to confirmation...');
-        setTimeout(() => navigate(res.data.successUrl), 2000);
+
+        const params = res.data;
+
+        // Build a hidden form and submit it to the eSewa test sandbox
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = 'https://rc-epay.esewa.com.np/api/epay/main/v2/form';
+
+        const fields = {
+          amount:                   params.amount,
+          tax_amount:               params.tax_amount,
+          total_amount:             params.total_amount,
+          transaction_uuid:         params.transaction_uuid,
+          product_code:             params.product_code,
+          product_service_charge:   params.product_service_charge,
+          product_delivery_charge:  params.product_delivery_charge,
+          success_url:              params.success_url,
+          failure_url:              params.failure_url,
+          signed_field_names:       params.signed_field_names,
+          signature:                params.signature,
+        };
+
+        Object.entries(fields).forEach(([name, value]) => {
+          const input = document.createElement('input');
+          input.type  = 'hidden';
+          input.name  = name;
+          input.value = value ?? '';
+          form.appendChild(input);
+        });
+
+        document.body.appendChild(form);
+        form.submit(); // Opens eSewa test payment page
       }
     } catch (err) {
+      setSuccess('');
       setError(err.response?.data?.msg || 'Payment failed. Please try again.');
-    } finally {
       setProcessing(false);
     }
   };
