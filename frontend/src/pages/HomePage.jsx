@@ -5,7 +5,7 @@ import { motion } from "framer-motion";
 import { ShieldCheck, Star, MapPin, Zap, ChevronRight, CheckCircle2 } from "lucide-react";
 
 import Navbar from "../components/Navbar";
-import LiveSearchBar from "../components/LiveSearchBar";
+import RentCarSearchPanel from "../components/RentCarSearchPanel";
 import CarCard from "../components/CarCard";
 import CompareBar from "../components/CompareBar";
 import CompareModal from "../components/CompareModal";
@@ -124,13 +124,12 @@ const HomePage = () => {
           </div>
         </div>
         
-        {/* Search Bar - Snaps to bottom of viewport */}
         <div className="relative z-30 w-full max-w-[1400px] mx-auto px-4 lg:px-6 pb-8 lg:pb-12 mt-auto">
           <motion.div 
              initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, delay: 0.3 }}
-             className="w-full max-w-6xl mx-auto rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 overflow-visible"
+             className="w-full max-w-6xl mx-auto overflow-visible"
           >
-             <LiveSearchBar useDropdown={true} />
+             <RentCarSearchPanel />
           </motion.div>
         </div>
       </section>

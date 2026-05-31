@@ -150,8 +150,8 @@ const ProfilePage = () => {
   };
 
   const totalBookings = bookings.length;
-  const confirmedBookings = bookings.filter(b => b.status === "Confirmed").length;
-  const pendingBookings = bookings.filter(b => b.status !== "Confirmed").length;
+  const confirmedBookings = bookings.filter(b => ["confirmed", "active", "completed"].includes(b.status)).length;
+  const pendingBookings = bookings.filter(b => ["pending-owner-approval", "approved-awaiting-payment", "confirmed-awaiting-cash-payment"].includes(b.status)).length;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 font-body relative pb-12 overflow-hidden">
@@ -355,7 +355,23 @@ const ProfilePage = () => {
               ) : (
                 <div className="space-y-4">
                   <AnimatePresence>
-                    {bookings.map((booking, i) => (
+                  {bookings.map((booking, i) => {
+                    const statusLabels = {
+                      "pending-owner-approval":        { label: "Pending Approval",       color: "bg-amber-100 text-amber-700 border-amber-200" },
+                      "approved-awaiting-payment":    { label: "Approved — Pay Now",       color: "bg-blue-100 text-blue-700 border-blue-200" },
+                      "confirmed":                     { label: "Confirmed",               color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+                      "confirmed-awaiting-cash-payment": { label: "Awaiting Cash Payment", color: "bg-purple-100 text-purple-700 border-purple-200" },
+                      "active":                        { label: "Active",                  color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+                      "completed":                     { label: "Completed",               color: "bg-slate-100 text-slate-600 border-slate-200" },
+                      "cancelled":                     { label: "Cancelled",               color: "bg-rose-100 text-rose-600 border-rose-200" },
+                      "rejected":                      { label: "Rejected",                color: "bg-rose-100 text-rose-600 border-rose-200" },
+                    };
+                    const statusInfo = statusLabels[booking.status] || { label: booking.status, color: "bg-slate-100 text-slate-600 border-slate-200" };
+                    const canPay = booking.status === "approved-awaiting-payment";
+                    const isPending = booking.status === "pending-owner-approval";
+                    const isRejected = booking.status === "rejected";
+
+                    return (
                       <motion.div 
                         initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
                         key={booking._id} 
@@ -372,9 +388,9 @@ const ProfilePage = () => {
                             );
                           })()}
                           <div className="absolute top-2 left-2">
-                             <Badge variant={booking.status === 'Confirmed' ? 'success' : 'warning'} className="shadow-md text-[9px] uppercase tracking-widest font-black py-0.5 px-2 bg-white/95 dark:bg-slate-900/95 border border-slate-100 dark:border-slate-800 text-slate-800 dark:text-slate-100">
-                               {booking.status}
-                             </Badge>
+                             <span className={`text-[9px] uppercase tracking-widest font-black py-0.5 px-2 rounded-full border shadow-sm ${statusInfo.color}`}>
+                               {statusInfo.label}
+                             </span>
                           </div>
                         </div>
 
@@ -392,18 +408,43 @@ const ProfilePage = () => {
                             </div>
                           </div>
                           
-                          <div className="flex items-center justify-between gap-4 pt-4 mt-3 border-t border-slate-100 dark:border-slate-800/50">
+                          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 mt-3 border-t border-slate-100 dark:border-slate-800/50">
                              <div>
                                <p className="text-[9px] uppercase tracking-widest font-black text-slate-400 mb-0.5">Total Fare</p>
-                               <div className="text-base font-extrabold text-primary-500">Rs. {booking.totalPrice}</div>
+                               <div className="text-base font-extrabold text-primary-500">Rs. {booking.totalPrice?.toLocaleString()}</div>
                              </div>
-                             <Button variant="outline" className="text-xs h-9 px-3 rounded-xl border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900/30 text-slate-700 dark:text-slate-300" onClick={() => navigate(`/vehicles/${booking.vehicle?._id}`)}>
-                               Details <ChevronRight size={12} className="ml-1" />
-                             </Button>
+                             <div className="flex items-center gap-2">
+                               {/* Pay Now — only when approved */}
+                               {canPay && (
+                                 <Button 
+                                   variant="primary" 
+                                   className="text-xs h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm"
+                                   onClick={() => navigate(`/pay/booking/${booking._id}`)}
+                                 >
+                                   Pay Now
+                                 </Button>
+                               )}
+                               {/* Awaiting approval message */}
+                               {isPending && (
+                                 <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+                                   Awaiting owner approval
+                                 </span>
+                               )}
+                               {/* Rejected message */}
+                               {isRejected && (
+                                 <span className="text-[10px] font-bold text-rose-500 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl">
+                                   Booking was rejected
+                                 </span>
+                               )}
+                               <Button variant="outline" className="text-xs h-9 px-3 rounded-xl border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900/30 text-slate-700 dark:text-slate-300" onClick={() => navigate(`/vehicles/${booking.vehicle?._id}`)}>
+                                 Details <ChevronRight size={12} className="ml-1" />
+                               </Button>
+                             </div>
                           </div>
                         </div>
                       </motion.div>
-                    ))}
+                    );
+                  })}
                   </AnimatePresence>
                 </div>
               )}

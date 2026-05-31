@@ -48,9 +48,9 @@ const LoginPage = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-white dark:bg-slate-950 font-body">
+    <div className="min-h-screen flex lg:flex-row-reverse bg-white dark:bg-slate-950 font-body">
       
-      {/* Left Panel: Form */}
+      {/* Right Panel: Form */}
       <div className="w-full lg:w-[55%] xl:w-[45%] flex flex-col justify-center px-8 sm:px-16 md:px-24 xl:px-32 relative z-10 pb-10">
         
         {/* Subtle decorative elements */}
@@ -161,8 +161,8 @@ const LoginPage = () => {
         </motion.div>
       </div>
 
-      {/* Right Panel: Cover Image */}
-      <div className="hidden lg:flex lg:w-[45%] xl:w-[55%] relative items-end p-16 overflow-hidden bg-slate-950 rounded-l-[3rem] shadow-[0_0_40px_rgba(0,0,0,0.1)]">
+      {/* Left Panel: Cover Image */}
+      <div className="hidden lg:flex lg:w-[45%] xl:w-[55%] relative items-end p-16 overflow-hidden bg-slate-950 rounded-r-[3rem] shadow-[0_0_40px_rgba(0,0,0,0.1)]">
         <div className="absolute inset-0 z-0">
           <img 
             src="https://images.unsplash.com/photo-1503376780353-7e6692767b70?ixlib=rb-4.0.3&auto=format&fit=crop&w=1920&q=80" 
@@ -187,24 +187,7 @@ const LoginPage = () => {
              Experience the thrill of driving absolute luxury.
           </h2>
           
-          <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-2xl p-6 relative">
-             <div className="absolute top-[-20px] right-8 text-primary-500/30 text-8xl font-serif select-none pointer-events-none">"</div>
-             <div className="flex gap-1 mb-3">
-               {[...Array(5)].map((_, i) => <Star key={i} size={16} className="fill-primary-500 text-primary-500 drop-shadow-md" />)}
-             </div>
-             <p className="text-slate-200 font-medium text-lg leading-relaxed mb-4 relative z-10 drop-shadow-sm">
-               "The easiest, most seamless car rental experience I've ever had in my life. The vehicle was stunning and immaculate."
-             </p>
-             <div className="flex items-center gap-3">
-               <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary-500 to-accent flex items-center justify-center text-white font-bold text-sm shadow-md">
-                 JD
-               </div>
-               <div>
-                 <p className="text-white font-bold text-sm drop-shadow-md">Jonathan Doe</p>
-                 <p className="text-slate-300 text-xs font-semibold uppercase tracking-wider drop-shadow-md">Design Director</p>
-               </div>
-             </div>
-          </div>
+
         </motion.div>
       </div>
 

@@ -11,6 +11,7 @@ const ownerApplicationRoutes = require("./routes/ownerApplicationRoutes");
 const adminRoutes = require("./routes/adminRoutes");
 const mechanicRoutes = require("./routes/mechanicRoutes");
 const paymentRoutes = require("./routes/paymentRoutes");
+const chatRoutes = require("./routes/chatRoutes");
 
 // Load environment variables
 dotenv.config();
@@ -55,6 +56,7 @@ app.use("/api/mechanics", mechanicRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/reviews", require("./routes/reviewRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
+app.use("/api/chats", chatRoutes);
 
 // Global Error Handler
 app.use((err, req, res, next) => {

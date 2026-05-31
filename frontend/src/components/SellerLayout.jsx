@@ -4,14 +4,15 @@ import {
   LayoutDashboard,
   CarFront,
   Key,
-  Wrench,
+  Inbox,
   Search,
   Settings,
   HelpCircle,
   ChevronRight,
   ChevronLeft,
   PlusCircle,
-  User
+  User,
+  MessageSquare
 } from "lucide-react";
 
 const SellerLayout = () => {
@@ -28,7 +29,8 @@ const SellerLayout = () => {
     { path: "/seller/dashboard", icon: LayoutDashboard, label: "Overview" },
     { path: "/seller/fleet", icon: CarFront, label: "My Fleet" },
     { path: "/seller/add-vehicle", icon: PlusCircle, label: "Add Car" },
-    { path: "/seller/bookings", icon: Key, label: "Bookings" },
+    { path: "/seller/bookings", icon: Inbox, label: "Incoming Bookings" },
+    { path: "/seller/messages", icon: MessageSquare, label: "Messages" },
     { path: "/profile", icon: User, label: "My Profile" },
   ];
 
@@ -108,6 +110,7 @@ const SellerLayout = () => {
                 if (p.includes("edit-vehicle")) return "Edit Vehicle";
                 if (p.includes("fleet")) return "My Fleet";
                 if (p.includes("bookings")) return "Bookings";
+                if (p.includes("messages")) return "Messages";
                 return "Overview";
               })()}
             </p>
@@ -118,12 +121,16 @@ const SellerLayout = () => {
                 if (p.includes("edit-vehicle")) return "Edit Vehicle";
                 if (p.includes("fleet")) return "My Fleet";
                 if (p.includes("bookings")) return "Incoming Bookings";
+                if (p.includes("messages")) return "Messages";
                 return "Seller Dashboard";
               })()}
             </h1>
           </div>
 
-          <div className="flex items-center gap-6">
+          <div className="flex items-center gap-4 lg:gap-6">
+            <button onClick={() => navigate('/seller/messages')} className="relative w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-primary-500 dark:hover:text-white transition-colors" title="Messages">
+              <MessageSquare size={22} className="stroke-[2.2px]" />
+            </button>
             <div className="flex items-center gap-2 bg-white dark:bg-slate-900 pl-1 pr-3 py-1 rounded-full border border-slate-200 dark:border-slate-800 cursor-pointer hover:shadow-sm transition-shadow">
               <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-600 flex items-center justify-center font-bold text-sm">
                 {getInitials(userName)}

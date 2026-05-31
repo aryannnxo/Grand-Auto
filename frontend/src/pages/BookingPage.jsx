@@ -20,21 +20,21 @@ const BookingPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [msg, setMsg] = useState('');
+  const [blockedDates, setBlockedDates] = useState([]); // [{startDate, endDate, status}]
   
   // Wizard State
-  const [step, setStep] = useState(1); // 1: Dates, 2: Logistics, 3: Summary
+  const [step, setStep] = useState(1); // 1: Dates, 2: Logistics, 3: Review
   
   // Form States
   const [form, setForm] = useState({
     startDate: '', 
     endDate: '', 
-    pickupMethod: 'Self Pickup', // "Self Pickup" or "Home Delivery"
-    returnMethod: 'Same Location', // "Same Location" or "Different Location"
+    pickupMethod: 'Self Pickup',
+    returnMethod: 'Same Location',
     pickupLocation: '', 
     dropoffLocation: ''
   });
-  const [paymentMethod, setPaymentMethod] = useState('eSewa');
-  const [simulatePayment, setSimulatePayment] = useState(true);
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
   
   // Calculation States
   const [bookingDays, setBookingDays] = useState(0);
@@ -50,12 +50,18 @@ const BookingPage = () => {
       try {
         const res = await axios.get(`http://localhost:5000/api/vehicles/${id}`);
         setVehicle(res.data);
-        // Default locations to vehicle's base location
         setForm(prev => ({ 
           ...prev, 
           pickupLocation: res.data.location, 
           dropoffLocation: res.data.location 
         }));
+        // Fetch blocked dates for this vehicle
+        try {
+          const blockedRes = await axios.get(`http://localhost:5000/api/bookings/vehicle/${id}/blocked-dates`);
+          setBlockedDates(blockedRes.data || []);
+        } catch (blockedErr) {
+          console.warn('Could not fetch blocked dates:', blockedErr);
+        }
       } catch (err) {
         setError('Failed to load vehicle details.');
       } finally {
@@ -185,30 +191,12 @@ const BookingPage = () => {
         paymentMethod,
       };
 
-      const res = await axios.post('http://localhost:5000/api/bookings', payload, {
+      await axios.post('http://localhost:5000/api/bookings', payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      const bookingId = res.data._id;
-
-      if (paymentMethod === 'eSewa') {
-        setMsg('Processing secure simulated eSewa payment...');
-        
-        // Since eSewa's testing sandbox server (rc-epay.esewa.com.np) is currently offline (404),
-        // we use the backend's local mock success handler to simulate the transaction.
-        const resMock = await axios.post('http://localhost:5000/api/payments/esewa/mock-success', {
-          bookingId: bookingId
-        }, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        setMsg('Simulated eSewa payment successful! Redirecting...');
-        setTimeout(() => navigate(resMock.data.successUrl), 2000);
-        return;
-      } else {
-        setMsg('Booking confirmed! Please pay the owner in cash on pickup. Redirecting...');
-        setTimeout(() => navigate('/profile'), 3000);
-      }
+      setMsg('Booking request submitted! Awaiting owner approval before payment.');
+      setTimeout(() => navigate('/profile'), 3000);
     } catch (err) {
       setError(err.response?.data?.msg || 'Booking failed. Try again.');
       setLoading(false);
@@ -258,7 +246,7 @@ const BookingPage = () => {
                 {[
                   { id: 1, title: 'Duration' },
                   { id: 2, title: 'Logistics' },
-                  { id: 3, title: 'Payment' }
+                  { id: 3, title: 'Review' }
                 ].map((s, idx) => (
                   <React.Fragment key={s.id}>
                     <div className="flex items-center gap-2">
@@ -288,6 +276,27 @@ const BookingPage = () => {
                 {step === 1 && (
                   <motion.div key="step1" variants={stepVariants} initial="hidden" animate="visible" exit="exit">
                     <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">Select Dates</h3>
+
+                    {/* Blocked dates info panel */}
+                    {blockedDates.length > 0 && (
+                      <div className="mb-5 p-4 rounded-xl bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-800/40">
+                        <p className="text-xs font-bold text-amber-800 dark:text-amber-400 mb-2 flex items-center gap-1.5">
+                          <Info size={14} /> Currently Unavailable Periods
+                        </p>
+                        <div className="flex flex-col gap-1.5">
+                          {blockedDates.map((d, i) => (
+                            <div key={i} className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-300">
+                              <span className="w-1.5 h-1.5 rounded-full bg-amber-500 shrink-0" />
+                              <span className="font-medium">
+                                {new Date(d.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} – {new Date(d.endDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                              </span>
+                              <span className="text-amber-500/70 text-[10px] uppercase tracking-wide">({d.status === 'pending-owner-approval' ? 'Pending' : d.status === 'approved-awaiting-payment' ? 'Approved' : d.status})</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
                     <div className="grid sm:grid-cols-2 gap-5">
                        <div>
                          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Start Date</label>
@@ -304,6 +313,9 @@ const BookingPage = () => {
                          </div>
                        </div>
                     </div>
+                    <p className="mt-3 text-[11px] text-slate-400 dark:text-slate-500">
+                      {blockedDates.length > 0 ? '⚠️ Unavailable dates are highlighted above. Selecting them will be blocked.' : 'All dates are currently available for this vehicle.'}
+                    </p>
                     <div className="mt-8 flex justify-end">
                       <Button onClick={nextStep} disabled={loading} className="w-full sm:w-auto px-6 h-12 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white rounded-xl transition-colors flex items-center justify-center font-medium text-sm">
                         {loading ? 'Checking Availability...' : 'Continue to Logistics'}
@@ -403,10 +415,11 @@ const BookingPage = () => {
                   </motion.div>
                 )}
 
-                {/* STEP 3: PAYMENT / SUMMARY */}
+                {/* STEP 3: REVIEW & SUBMIT */}
                 {step === 3 && (
                   <motion.div key="step3" variants={stepVariants} initial="hidden" animate="visible" exit="exit">
-                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-6">Payment Method</h3>
+                    <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2">Payment Preference</h3>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mb-6">Choose how you'd like to pay after owner approval.</p>
                     
                     <div className="grid sm:grid-cols-2 gap-4 mb-8">
                       <div onClick={() => setPaymentMethod('eSewa')} className={`cursor-pointer p-4 rounded-xl border transition-colors flex items-center gap-4 ${paymentMethod === 'eSewa' ? 'border-[#60bb46] bg-[#60bb46]/5 dark:bg-[#60bb46]/10' : 'border-slate-200 dark:border-slate-800 bg-white dark:bg-[#111] hover:border-slate-300 dark:hover:border-slate-700'}`}>
@@ -427,19 +440,19 @@ const BookingPage = () => {
                           <h4 className="font-medium text-sm text-slate-900 dark:text-white">Cash</h4>
                           <p className="text-xs text-slate-500 dark:text-slate-400">Pay on hand-over</p>
                         </div>
-                     </div>
+                       </div>
                     </div>
 
-                    {paymentMethod === 'eSewa' && (
-                      <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 flex flex-col gap-2">
-                        <p className="text-xs font-semibold text-blue-800 dark:text-blue-400">
-                          eSewa Sandbox Simulator Active
-                        </p>
-                        <p className="text-xs text-blue-750 dark:text-slate-350 leading-relaxed">
-                          The official eSewa test server (UAT) is currently offline (Tomcat 404). We have activated the local **Sandbox Simulator** so you can complete your booking and verify the payment flow successfully.
+                    {/* Approval notice */}
+                    <div className="mb-6 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/10 border border-blue-100 dark:border-blue-900/30 flex items-start gap-3">
+                      <Info size={16} className="text-blue-500 mt-0.5 shrink-0" />
+                      <div>
+                        <p className="text-xs font-bold text-blue-800 dark:text-blue-300">Payment after owner approval</p>
+                        <p className="text-xs text-blue-700 dark:text-blue-400 leading-relaxed mt-0.5">
+                          Your booking request will be sent to the owner. Payment will only be required once the owner approves your request. You'll receive a notification when it's approved.
                         </p>
                       </div>
-                    )}
+                    </div>
 
                     <AnimatePresence>
                       {msg && (
@@ -451,8 +464,12 @@ const BookingPage = () => {
 
                     <div className="mt-8 flex justify-between items-center gap-4">
                       <button type="button" onClick={prevStep} className="text-sm font-medium text-slate-500 hover:text-slate-900 dark:hover:text-white transition-colors">Back</button>
-                      <Button onClick={handleSubmit} className={`w-full sm:w-auto px-8 h-12 text-sm font-medium rounded-xl transition-colors flex items-center justify-center ${paymentMethod === 'eSewa' ? 'bg-[#60bb46] hover:bg-[#52a13b] text-white' : 'bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white'}`} disabled={loading}>
-                        {loading ? 'Processing...' : (paymentMethod === 'eSewa' ? 'Confirm & Simulate Payment' : 'Confirm Booking')}
+                      <Button 
+                        onClick={handleSubmit} 
+                        className="w-full sm:w-auto px-8 h-12 text-sm font-medium rounded-xl transition-colors flex items-center justify-center bg-slate-900 hover:bg-slate-800 dark:bg-white dark:hover:bg-slate-200 dark:text-slate-900 text-white" 
+                        disabled={loading}
+                      >
+                        {loading ? 'Submitting...' : 'Submit Booking Request'}
                       </Button>
                     </div>
                   </motion.div>

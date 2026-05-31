@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import { MapPin, Share2, AlertTriangle, ShieldCheck } from 'lucide-react';
 import { Button } from '../ui/Button';
 import { useNavigate } from 'react-router-dom';
@@ -47,7 +48,7 @@ const CarSummaryCard = ({ vehicle }) => {
       <div>
         {/* Primary CTA */}
         <Button 
-          className="w-full py-4 bg-gradient-to-r from-[#2170ed] to-[#3ca0f0] hover:from-[#1b5bbf] hover:to-[#2e7dd1] text-white font-bold text-sm rounded-lg shadow-md shadow-blue-500/20 transition-all mb-4 border-0"
+          className="w-full py-4 bg-gradient-to-r from-[#2170ed] to-[#3ca0f0] hover:from-[#1b5bbf] hover:to-[#2e7dd1] text-white font-bold text-sm rounded-lg shadow-md shadow-blue-500/20 transition-all mb-3 border-0"
           onClick={() => {
             const token = localStorage.getItem("token");
             if (!token) {
@@ -58,6 +59,42 @@ const CarSummaryCard = ({ vehicle }) => {
           }}
         >
           Rent Now
+        </Button>
+        <Button 
+          variant="outline"
+          className="w-full py-4 text-slate-700 font-bold text-sm rounded-lg transition-all mb-4 border-slate-200 hover:bg-slate-50"
+          onClick={async () => {
+            const token = localStorage.getItem("token");
+            if (!token) {
+              navigate('/login');
+              return;
+            }
+            try {
+              const res = await axios.post("http://localhost:5000/api/chats/start", 
+                { vehicleId: vehicle._id },
+                { headers: { Authorization: `Bearer ${token}` } }
+              );
+              
+              const userRole = localStorage.getItem("userRole");
+              const isVerifiedOwner = localStorage.getItem("isVerifiedOwner") === "true";
+              let chatPath = "/dashboard";
+              let searchParams = "?view=messages&chatId=" + res.data._id;
+              
+              if (userRole === "admin") {
+                chatPath = "/admin/messages";
+                searchParams = "?chatId=" + res.data._id;
+              } else if (isVerifiedOwner) {
+                chatPath = "/seller/messages";
+                searchParams = "?chatId=" + res.data._id;
+              }
+              
+              navigate(`${chatPath}${searchParams}`);
+            } catch (err) {
+              alert(err.response?.data?.msg || "Failed to start chat");
+            }
+          }}
+        >
+          Chat with Owner
         </Button>
 
         {/* Location & Compare */}

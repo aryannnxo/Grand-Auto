@@ -11,9 +11,11 @@ import Dashboard from "./pages/Dashboard";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import AdminLayout from "./components/AdminLayout";
 import ListingsPage from "./pages/ListingsPage";
+import ChatPage from "./pages/ChatPage";
 
 import VehicleDetailsPage from "./pages/VehicleDetailsPage";
 import BookingPage from "./pages/BookingPage";
+import BookingPaymentPage from "./pages/BookingPaymentPage";
 import OwnerApplicationPage from "./pages/OwnerApplicationPage";
 import AdminVerificationPage from "./pages/AdminVerificationPage";
 import AdminCarVerificationPage from "./pages/AdminCarVerificationPage";
@@ -48,7 +50,9 @@ function App() {
       <Route path="/vehicles" element={<VehiclesPage />} />
       <Route path="/vehicles/:id" element={<VehicleDetailsPage />} />
       <Route path="/book/:id" element={<BookingPage />} />
+      <Route path="/pay/booking/:bookingId" element={<BookingPaymentPage />} />
       <Route path="/listings" element={<ListingsPage />} />
+      <Route path="/messages" element={<ChatPage />} />
       <Route path="/apply-owner" element={<OwnerApplicationPage />} />
       <Route path="/admin" element={<AdminLayout />}>
         <Route path="dashboard" element={<AdminDashboardPage />} />
@@ -60,11 +64,13 @@ function App() {
         <Route path="rentals" element={<AdminRentalsPage />} />
         <Route path="payments" element={<AdminPaymentsPage />} />
         <Route path="mechanics" element={<AdminMechanicsPage />} />
+        <Route path="messages" element={<ChatPage isNested={true} />} />
       </Route>
       <Route path="/seller" element={<SellerLayout />}>
         <Route path="dashboard" element={<SellerDashboardPage />} />
         <Route path="fleet" element={<SellerFleetPage />} />
         <Route path="bookings" element={<SellerBookingsPage />} />
+        <Route path="messages" element={<ChatPage isNested={true} />} />
         <Route path="add-vehicle" element={<AddVehiclePage />} />
         <Route path="edit-vehicle/:id" element={<AddVehiclePage />} />
       </Route>

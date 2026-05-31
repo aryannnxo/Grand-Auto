@@ -57,23 +57,20 @@ const AdminCarsPage = () => {
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "available": return <Badge variant="success" className="shadow-lg">Available</Badge>;
-      case "rented": return <Badge variant="primary" className="shadow-lg">Rented</Badge>;
-      case "maintenance": return <Badge variant="warning" className="shadow-lg bg-orange-500 text-white border-orange-500">Maintenance</Badge>;
-      case "inactive": return <Badge variant="danger" className="shadow-lg">Inactive</Badge>;
-      default: return <Badge variant="default" className="shadow-lg">{status}</Badge>;
+      case "available": return <Badge variant="success" className="shadow-sm">Available</Badge>;
+      case "rented": return <Badge variant="primary" className="shadow-sm">Rented</Badge>;
+      case "maintenance": return <Badge variant="warning" className="shadow-sm bg-orange-500 text-white border-orange-500">Maintenance</Badge>;
+      case "inactive": return <Badge variant="danger" className="shadow-sm">Inactive</Badge>;
+      default: return <Badge variant="default" className="shadow-sm">{status}</Badge>;
     }
   };
 
   return (
     <>
-      <div className="w-full max-w-7xl mx-auto pt-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+      <div className="w-full max-w-7xl mx-auto pt-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider mb-3">
-              <ShieldCheck size={14} /> Admin Workspace
-            </div>
-            <h1 className="text-3xl md:text-5xl font-black font-heading text-slate-900 dark:text-white tracking-tight">Fleet Management</h1>
+            <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Fleet Management</h1>
           </div>
           
           <div className="flex flex-col sm:flex-row gap-4 items-center">
@@ -84,14 +81,14 @@ const AdminCarsPage = () => {
                 placeholder="Search brand/model..." 
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="mb-0"
+                className="mb-0 rounded-md"
               />
             </div>
-            <div className="flex flex-wrap gap-2 bg-white dark:bg-slate-900 p-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+            <div className="flex flex-wrap gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-md shadow-sm border border-slate-200 dark:border-slate-800">
               {['', 'available', 'rented', 'maintenance', 'inactive'].map(status => (
                  <button 
                     key={status} onClick={() => setFilter(status)}
-                    className={`px-4 py-2 rounded-xl font-bold text-sm capitalize transition-all ${filter === status ? 'bg-primary-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                    className={`px-3 py-1.5 rounded text-sm capitalize transition-all ${filter === status ? 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                  >
                    {status === '' ? 'All Statuses' : status}
                  </button>
@@ -114,51 +111,51 @@ const AdminCarsPage = () => {
             <p className="text-slate-500">Try adjusting your filters or search query.</p>
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
             {vehicles.map((vehicle, idx) => (
               <motion.div 
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.02 }}
                 key={vehicle._id} 
-                className="bg-white dark:bg-slate-900 rounded-3xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow flex flex-col group cursor-pointer"
+                className="bg-white dark:bg-slate-900 rounded-lg overflow-hidden shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow flex flex-col cursor-pointer"
                 onClick={() => handleOpenModal(vehicle)}
               >
-                <div className="h-48 rounded-t-3xl bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
+                <div className="h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden relative">
                   {(vehicle.images && vehicle.images.length > 0) || vehicle.image ? (
-                    <img src={`${API}${vehicle.images?.[0]?.url || vehicle.images?.[0] || vehicle.image}`} alt={vehicle.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                    <img src={`${API}${vehicle.images?.[0]?.url || vehicle.images?.[0] || vehicle.image}`} alt={vehicle.name} className="w-full h-full object-cover transition-transform duration-500" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center text-slate-400 font-medium bg-slate-100 dark:bg-slate-800"><CarFront size={48} className="opacity-20 mb-2"/></div>
                   )}
-                  <div className="absolute top-4 left-4">
+                  <div className="absolute top-3 left-3">
                     {getStatusBadge(vehicle.operationalStatus || 'available')}
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-slate-900/80 via-transparent to-transparent z-10" />
-                  <div className="absolute bottom-4 left-4 right-4 z-20 flex justify-between items-end">
-                    <h3 className="text-xl font-black font-heading text-white tracking-tight leading-none truncate" title={`${vehicle.brand} ${vehicle.model}`}>{vehicle.brand} {vehicle.model}</h3>
+                  <div className="absolute bottom-3 left-4 right-4 z-20 flex justify-between items-end">
+                    <h3 className="text-lg font-semibold text-white truncate" title={`${vehicle.brand} ${vehicle.model}`}>{vehicle.brand} {vehicle.model}</h3>
                     <div className="text-right">
-                       <span className="text-lg font-black text-primary-400 block">${vehicle.pricePerDay}</span>
+                       <span className="text-sm font-bold text-primary-400 block">${vehicle.pricePerDay}</span>
                     </div>
                   </div>
                 </div>
                 
-                <div className="p-5 flex-1 flex flex-col gap-4">
-                  <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                    <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
-                       <MapPin size={16} className="text-primary-500"/>
+                <div className="p-4 flex-1 flex flex-col gap-3">
+                  <div className="flex justify-between items-center bg-slate-50 dark:bg-slate-800/50 p-2.5 rounded-md border border-slate-100 dark:border-slate-800">
+                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                       <MapPin size={14} className="text-primary-500"/>
                        {vehicle.location}
                     </div>
-                    <div className="flex items-center gap-2 text-sm font-bold text-slate-700 dark:text-slate-300">
-                       <Settings size={16} className="text-primary-500"/>
+                    <div className="flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400">
+                       <Settings size={14} className="text-primary-500"/>
                        {vehicle.transmission}
                     </div>
                   </div>
                   
                   <div className="flex items-center justify-between mt-auto">
                     <div className="flex items-center gap-2">
-                       <div className="w-8 h-8 rounded-full bg-accent/20 text-accent flex items-center justify-center font-bold text-xs">{vehicle.owner?.name?.charAt(0) || "O"}</div>
-                       <p className="font-semibold text-slate-800 dark:text-slate-200 text-sm truncate max-w-[120px]">{vehicle.owner?.name || 'Grand Auto'}</p>
+                       <div className="w-6 h-6 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 flex items-center justify-center font-bold text-[10px]">{vehicle.owner?.name?.charAt(0) || "O"}</div>
+                       <p className="font-medium text-slate-800 dark:text-slate-200 text-xs truncate max-w-[120px]">{vehicle.owner?.name || 'Grand Auto'}</p>
                     </div>
-                    <Button variant="ghost" size="sm" className="text-primary-600 dark:text-primary-400 px-3 hover:bg-primary-50 dark:hover:bg-primary-900/20">
-                      Manage <Info size={16} className="ml-1.5" />
+                    <Button variant="ghost" size="sm" className="text-primary-600 dark:text-primary-400 px-2 h-7 text-xs hover:bg-primary-50 dark:hover:bg-primary-900/20">
+                      Manage <Info size={14} className="ml-1" />
                     </Button>
                   </div>
                 </div>

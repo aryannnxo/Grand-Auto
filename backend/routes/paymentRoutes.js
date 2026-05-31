@@ -36,6 +36,13 @@ router.post("/esewa/initiate", protect, async (req, res) => {
       return res.status(401).json({ msg: "Not authorized" });
     }
 
+    // ✅ Approval guard: payment only allowed after owner approves
+    if (booking.status !== "approved-awaiting-payment") {
+      return res.status(400).json({
+        msg: "This booking must be approved by the owner before payment can be processed.",
+      });
+    }
+
     if (booking.paymentStatus === "Paid") {
       return res.status(400).json({ msg: "Booking is already paid" });
     }

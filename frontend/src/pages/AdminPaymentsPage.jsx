@@ -85,65 +85,61 @@ const AdminPaymentsPage = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto pt-8">
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider mb-4">
-            <ShieldCheck size={14} /> Financial Dashboard
-          </div>
-          <h1 className="text-3xl md:text-5xl font-black font-heading text-slate-900 dark:text-white tracking-tight leading-tight">
+    <div className="w-full max-w-7xl mx-auto pt-2">
+        <div className="mb-6">
+          <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">
             Payments Management
           </h1>
         </div>
 
         {/* Stats Row */}
-        <div className="grid sm:grid-cols-3 gap-6 mb-10">
-           <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-5">
-              <div className="w-14 h-14 rounded-full bg-primary-100 dark:bg-primary-900/40 text-primary-600 dark:text-primary-400 flex items-center justify-center">
-                 <Wallet size={24} />
+        <div className="grid sm:grid-cols-3 gap-4 mb-6">
+           <div className="bg-white dark:bg-slate-900 rounded-lg p-5 border border-slate-200 dark:border-slate-800 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+                 <Wallet size={20} />
               </div>
               <div>
-                 <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">Total Revenue</p>
-                 <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">Rs. {stats.totalRevenue.toLocaleString()}</p>
+                 <p className="text-xs font-medium text-slate-500 uppercase">Total Revenue</p>
+                 <p className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">Rs. {stats.totalRevenue.toLocaleString()}</p>
               </div>
            </div>
-           <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-5 relative overflow-hidden">
-              <div className="absolute top-0 right-0 w-32 h-32 bg-[#60bb46]/10 rounded-bl-full translate-x-10 -translate-y-10" />
-              <div className="w-14 h-14 rounded-full bg-[#60bb46]/20 text-[#60bb46] flex items-center justify-center relative z-10">
-                 <ShieldCheck size={24} />
-              </div>
-              <div className="relative z-10">
-                 <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">eSewa Payments</p>
-                 <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">Rs. {stats.esewaRevenue.toLocaleString()}</p>
-              </div>
-           </div>
-           <div className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 shadow-sm border border-slate-200 dark:border-slate-800 flex items-center gap-5">
-              <div className="w-14 h-14 rounded-full bg-amber-100 dark:bg-amber-900/40 text-amber-600 dark:text-amber-400 flex items-center justify-center">
-                 <RefreshCw size={24} />
+           <div className="bg-white dark:bg-slate-900 rounded-lg p-5 border border-slate-200 dark:border-slate-800 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+                 <ShieldCheck size={20} />
               </div>
               <div>
-                 <p className="text-sm font-bold text-slate-400 uppercase tracking-wider">Pending Balances</p>
-                 <p className="text-3xl font-black text-slate-900 dark:text-white mt-1">Rs. {stats.pendingAmount.toLocaleString()}</p>
+                 <p className="text-xs font-medium text-slate-500 uppercase">eSewa Payments</p>
+                 <p className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">Rs. {stats.esewaRevenue.toLocaleString()}</p>
+              </div>
+           </div>
+           <div className="bg-white dark:bg-slate-900 rounded-lg p-5 border border-slate-200 dark:border-slate-800 flex items-center gap-4">
+              <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 flex items-center justify-center">
+                 <RefreshCw size={20} />
+              </div>
+              <div>
+                 <p className="text-xs font-medium text-slate-500 uppercase">Pending Balances</p>
+                 <p className="text-xl font-bold text-slate-900 dark:text-white mt-0.5">Rs. {stats.pendingAmount.toLocaleString()}</p>
               </div>
            </div>
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 mb-8 bg-white dark:bg-slate-900 p-3 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm max-w-2xl">
+        <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
            <div className="flex gap-2">
-             <button onClick={() => setStatusFilter("")} className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${statusFilter === "" ? "bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>All Statuses</button>
-             <button onClick={() => setStatusFilter("Paid")} className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${statusFilter === "Paid" ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>Paid</button>
-             <button onClick={() => setStatusFilter("Pending")} className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${statusFilter === "Pending" ? "bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>Pending</button>
+             <button onClick={() => setStatusFilter("")} className={`px-3 py-1.5 rounded-md text-sm transition-colors ${statusFilter === "" ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900" : "bg-white text-slate-600 border border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-50"}`}>All Statuses</button>
+             <button onClick={() => setStatusFilter("Paid")} className={`px-3 py-1.5 rounded-md text-sm transition-colors ${statusFilter === "Paid" ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900" : "bg-white text-slate-600 border border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-50"}`}>Paid</button>
+             <button onClick={() => setStatusFilter("Pending")} className={`px-3 py-1.5 rounded-md text-sm transition-colors ${statusFilter === "Pending" ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900" : "bg-white text-slate-600 border border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-50"}`}>Pending</button>
            </div>
-           <div className="w-px h-8 bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+           <div className="w-px h-6 bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
            <div className="flex gap-2">
-             <button onClick={() => setMethodFilter("")} className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${methodFilter === "" ? "bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>All Methods</button>
-             <button onClick={() => setMethodFilter("eSewa")} className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${methodFilter === "eSewa" ? "bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>eSewa</button>
-             <button onClick={() => setMethodFilter("Cash")} className={`px-4 py-2 rounded-xl text-sm font-bold transition-colors ${methodFilter === "Cash" ? "bg-primary-50 text-primary-600 dark:bg-primary-900/30 dark:text-primary-400" : "text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800"}`}>Cash</button>
+             <button onClick={() => setMethodFilter("")} className={`px-3 py-1.5 rounded-md text-sm transition-colors ${methodFilter === "" ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900" : "bg-white text-slate-600 border border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-50"}`}>All Methods</button>
+             <button onClick={() => setMethodFilter("eSewa")} className={`px-3 py-1.5 rounded-md text-sm transition-colors ${methodFilter === "eSewa" ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900" : "bg-white text-slate-600 border border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-50"}`}>eSewa</button>
+             <button onClick={() => setMethodFilter("Cash")} className={`px-3 py-1.5 rounded-md text-sm transition-colors ${methodFilter === "Cash" ? "bg-slate-800 text-white dark:bg-white dark:text-slate-900" : "bg-white text-slate-600 border border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 hover:bg-slate-50"}`}>Cash</button>
            </div>
         </div>
 
         {/* Table */}
-        <div className="bg-white dark:bg-slate-900 rounded-[2rem] border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-lg border border-slate-200 dark:border-slate-800 overflow-hidden">
            {loading ? (
              <div className="flex justify-center p-20"><div className="w-8 h-8 rounded-full border-4 border-slate-200 border-t-primary-500 animate-spin" /></div>
            ) : payments.length === 0 ? (

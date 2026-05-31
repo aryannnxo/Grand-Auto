@@ -56,22 +56,19 @@ const AdminVerificationPage = () => {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto pt-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-10">
+    <div className="w-full max-w-7xl mx-auto pt-2">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
           <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-600 dark:text-primary-400 text-xs font-bold uppercase tracking-wider mb-3">
-              <ShieldCheck size={14} /> Admin Workspace
-            </div>
-            <h1 className="text-3xl md:text-5xl font-black font-heading text-slate-900 dark:text-white tracking-tight">Owner Applications</h1>
+            <h1 className="text-2xl font-semibold text-slate-900 dark:text-white">Owner Applications</h1>
           </div>
           
-          <div className="flex flex-wrap gap-2 bg-white dark:bg-slate-900 p-2 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-800">
+          <div className="flex flex-wrap gap-2 bg-white dark:bg-slate-900 p-1.5 rounded-md shadow-sm border border-slate-200 dark:border-slate-800">
             {['pending', 'approved', 'rejected'].map(status => (
                <button 
                   key={status} onClick={() => setFilter(status)}
-                  className={`px-5 py-2.5 rounded-xl font-bold text-sm capitalize transition-all ${filter === status ? 'bg-primary-500 text-white shadow-md' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                  className={`px-4 py-2 rounded text-sm capitalize transition-all ${filter === status ? 'bg-slate-800 text-white dark:bg-slate-100 dark:text-slate-900' : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                >
-                 {status} <Badge variant={status === 'pending' ? 'warning' : status === 'approved' ? 'success' : 'outline'} className="ml-2 scale-90">{applications.length > 0 && filter === status ? applications.length : ''}</Badge>
+                 {status} <Badge variant={status === 'pending' ? 'warning' : status === 'approved' ? 'success' : 'outline'} className="ml-1.5 scale-90">{applications.length > 0 && filter === status ? applications.length : ''}</Badge>
                </button>
             ))}
           </div>
@@ -91,60 +88,60 @@ const AdminVerificationPage = () => {
             <p className="text-slate-500">There are currently no owner applications in this category.</p>
           </div>
         ) : (
-          <div className="grid gap-6">
+          <div className="grid gap-4">
             {applications.map((app, idx) => (
               <motion.div 
-                initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }}
+                initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.02 }}
                 key={app._id} 
-                className="bg-white dark:bg-slate-900 rounded-[2rem] p-6 sm:p-8 flex flex-col gap-6 shadow-sm border border-slate-200 dark:border-slate-800 hover:shadow-md transition-shadow relative overflow-hidden"
+                className="bg-white dark:bg-slate-900 rounded-lg p-5 flex flex-col gap-5 border border-slate-200 dark:border-slate-800"
               >
-                <div className="flex flex-col lg:flex-row justify-between items-start gap-8">
+                <div className="flex flex-col lg:flex-row justify-between items-start gap-6">
                   <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                       <h3 className="text-2xl font-black font-heading text-slate-900 dark:text-white tracking-tight">{app.fullName}</h3>
+                    <div className="flex items-center gap-3 mb-1">
+                       <h3 className="text-lg font-semibold text-slate-900 dark:text-white">{app.fullName}</h3>
                        <Badge variant={filter === 'approved' ? 'success' : filter === 'rejected' ? 'danger' : 'warning'}>{filter}</Badge>
                     </div>
-                    <p className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-6">Applied {new Date(app.createdAt).toLocaleDateString()}</p>
+                    <p className="text-xs text-slate-500 mb-4">Applied {new Date(app.createdAt).toLocaleDateString()}</p>
                     
-                    <div className="grid sm:grid-cols-2 gap-4">
-                       <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                          <Mail size={18} className="text-primary-500 mt-0.5"/>
+                    <div className="grid sm:grid-cols-2 gap-3">
+                       <div className="flex items-start gap-3 p-3 rounded-md bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                          <Mail size={16} className="text-primary-500 mt-0.5"/>
                           <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Email</p>
-                            <p className="font-bold text-slate-800 dark:text-slate-200">{app.email}</p>
+                            <p className="text-xs text-slate-500">Email</p>
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{app.email}</p>
                           </div>
                        </div>
-                       <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                          <Phone size={18} className="text-primary-500 mt-0.5"/>
+                       <div className="flex items-start gap-3 p-3 rounded-md bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                          <Phone size={16} className="text-primary-500 mt-0.5"/>
                           <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Phone</p>
-                            <p className="font-bold text-slate-800 dark:text-slate-200">{app.phone}</p>
+                            <p className="text-xs text-slate-500">Phone</p>
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{app.phone}</p>
                           </div>
                        </div>
-                       <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                          <MapPin size={18} className="text-primary-500 mt-0.5"/>
+                       <div className="flex items-start gap-3 p-3 rounded-md bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                          <MapPin size={16} className="text-primary-500 mt-0.5"/>
                           <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">Address</p>
-                            <p className="font-bold text-slate-800 dark:text-slate-200">{app.address}</p>
+                            <p className="text-xs text-slate-500">Address</p>
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{app.address}</p>
                           </div>
                        </div>
-                       <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
-                          <CreditCard size={18} className="text-primary-500 mt-0.5"/>
+                       <div className="flex items-start gap-3 p-3 rounded-md bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
+                          <CreditCard size={16} className="text-primary-500 mt-0.5"/>
                           <div>
-                            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">ID / License</p>
-                            <p className="font-bold text-slate-800 dark:text-slate-200">{app.idNumber} / {app.licenseNumber}</p>
+                            <p className="text-xs text-slate-500">ID / License</p>
+                            <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{app.idNumber} / {app.licenseNumber}</p>
                           </div>
                        </div>
                     </div>
                   </div>
 
-                  <div className="w-full lg:w-72 flex flex-col gap-3">
-                     <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 hidden lg:block">Verification Docs</p>
-                     <a href={`${API}${app.ownershipProof}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:border-primary-500 hover:text-primary-600 transition-colors group">
-                        <FileText size={18} className="text-primary-500"/> View Ownership Proof <ExternalLink size={14} className="opacity-50 group-hover:opacity-100" />
+                  <div className="w-full lg:w-64 flex flex-col gap-2">
+                     <p className="text-xs font-semibold text-slate-500 mb-1 hidden lg:block">Verification Docs</p>
+                     <a href={`${API}${app.ownershipProof}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group">
+                        <FileText size={16} className="text-primary-500"/> View Ownership Proof <ExternalLink size={14} className="opacity-50 group-hover:opacity-100" />
                      </a>
-                     <a href={`${API}${app.idPhoto}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 p-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold hover:border-primary-500 hover:text-primary-600 transition-colors group">
-                        <Users size={18} className="text-primary-500"/> View ID Photo <ExternalLink size={14} className="opacity-50 group-hover:opacity-100" />
+                     <a href={`${API}${app.idPhoto}`} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-2 p-3 rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors group">
+                        <Users size={16} className="text-primary-500"/> View ID Photo <ExternalLink size={14} className="opacity-50 group-hover:opacity-100" />
                      </a>
                   </div>
                 </div>

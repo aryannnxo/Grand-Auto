@@ -15,7 +15,6 @@ import FeatureList from '../components/vehicle/FeatureList';
 import SpecSection from '../components/vehicle/SpecSection';
 import RTOTrustSection from '../components/vehicle/RTOTrustSection';
 import ReviewsSection from '../components/vehicle/ReviewsSection';
-import BookingCard from '../components/vehicle/BookingCard';
 import RelatedCars from '../components/vehicle/RelatedCars';
 import ImageGallery from '../components/vehicle/ImageGallery';
 import Footer from '../components/Footer';
@@ -34,15 +33,10 @@ const VehicleDetailsPage = () => {
   const [activeImgIdx, setActiveImgIdx] = useState(0);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  // Booking Card State
-  const [dates, setDates] = useState({ start: '', end: '' });
-  const [totalPrice, setTotalPrice] = useState(0);
-
   useEffect(() => {
     setLoading(true);
     setError('');
     setActiveImgIdx(0);
-    setDates({ start: '', end: '' });
     window.scrollTo({ top: 0, behavior: 'instant' });
 
     const fetchVehicle = async () => {
@@ -57,21 +51,6 @@ const VehicleDetailsPage = () => {
     };
     fetchVehicle();
   }, [id]);
-
-  useEffect(() => {
-    if (dates.start && dates.end && vehicle) {
-      const start = new Date(dates.start);
-      const end = new Date(dates.end);
-      if (end >= start) {
-        const diffDays = Math.ceil(Math.abs(end - start) / (1000 * 60 * 60 * 24)) || 1;
-        setTotalPrice(diffDays * vehicle.pricePerDay);
-      } else {
-        setTotalPrice(0);
-      }
-    } else {
-      setTotalPrice(0);
-    }
-  }, [dates, vehicle]);
 
   const imagesArr = useMemo(() => {
     if (vehicle?.images?.length > 0) {
@@ -140,37 +119,25 @@ const VehicleDetailsPage = () => {
         {/* STICKY TABS NAVIGATION */}
         <StickyTabs />
 
-        {/* CONTENT GRID (70/30) */}
-        <div className="grid lg:grid-cols-[68%_32%] gap-6 pt-8">
+        {/* CONTENT */}
+        <div className="flex flex-col pt-8">
            
-           {/* LEFT COLUMN: Detailed Information */}
-           <div className="flex flex-col">
-              <CarOverview vehicle={vehicle} />
-              
-              <div id="features" className="scroll-mt-32">
-                <FeatureList />
-              </div>
-              
-              <div id="specs" className="scroll-mt-32">
-                <SpecSection vehicle={vehicle} />
-              </div>
-              
-              <RTOTrustSection />
-              
-              <div id="reviews" className="scroll-mt-32">
-                <ReviewsSection vehicle={vehicle} />
-              </div>
+           {/* Detailed Information */}
+           <CarOverview vehicle={vehicle} />
+           
+           <div id="features" className="scroll-mt-32">
+             <FeatureList />
            </div>
-
-           {/* RIGHT COLUMN: Sticky Booking / Pricing Card */}
-           <aside className="relative">
-              <BookingCard 
-                 vehicle={vehicle} 
-                 dates={dates} 
-                 setDates={setDates} 
-                 totalPrice={totalPrice} 
-              />
-           </aside>
+           
+           <div id="specs" className="scroll-mt-32">
+             <SpecSection vehicle={vehicle} />
+           </div>
+           
+           <RTOTrustSection />
+           
+           <div id="reviews" className="scroll-mt-32">
+             <ReviewsSection vehicle={vehicle} />
+           </div>
 
         </div>
         

@@ -11,7 +11,6 @@ const CompareModal = ({ isOpen, onClose, cars }) => {
 
   if (!isOpen) return null;
 
-  // Find the cheapest car for the "Best Value" badge
   const minPrice = cars.length > 0 ? Math.min(...cars.map(c => c.pricePerDay || c.price || 0)) : 0;
 
   const specs = [
@@ -21,6 +20,7 @@ const CompareModal = ({ isOpen, onClose, cars }) => {
     { label: "Seats", key: "seats", suffix: " Seats", icon: Users },
     { label: "Location", key: "location", icon: MapPin },
     { label: "Ratings", key: "rating", icon: Star },
+    { label: "Air Conditioning", key: "ac", icon: Wind, isBoolean: true },
   ];
 
   return (
@@ -31,123 +31,109 @@ const CompareModal = ({ isOpen, onClose, cars }) => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/60 backdrop-blur-md z-[110]"
+            className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[110]"
             onClick={onClose}
           />
           <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="fixed inset-4 md:inset-10 lg:inset-x-20 xl:inset-x-32 z-[120] bg-white dark:bg-slate-900 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col border border-slate-200/50 dark:border-slate-700/50"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed inset-4 md:inset-10 lg:inset-x-24 xl:inset-x-40 z-[120] bg-white dark:bg-[#0f1115] rounded-2xl shadow-xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-800"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 md:p-8 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-900">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100 dark:border-slate-800/80 bg-white dark:bg-[#0f1115]">
               <div>
-                <h2 className="text-2xl md:text-3xl font-black font-heading text-slate-900 dark:text-white flex items-center gap-3">
-                  Vehicle Comparison
-                  <span className="px-3 py-1 bg-primary-100 text-primary-700 dark:bg-primary-900/30 dark:text-primary-400 text-xs font-bold rounded-full uppercase tracking-wider">
-                    {cars.length} Vehicles
+                <h2 className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-white flex items-center gap-2">
+                  Compare Vehicles
+                  <span className="px-2 py-0.5 bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300 text-xs font-medium rounded-md">
+                    {cars.length} selected
                   </span>
                 </h2>
-                <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm md:text-base">Side-by-side spec comparison to help you choose the perfect ride.</p>
               </div>
               <button 
                 onClick={onClose}
-                className="w-12 h-12 rounded-full bg-slate-100 dark:bg-slate-800 border-none flex items-center justify-center text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-200 dark:hover:bg-slate-700 transition-all shadow-sm group"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
               >
-                <X size={24} className="group-hover:rotate-90 transition-transform duration-300" />
+                <X size={20} />
               </button>
             </div>
 
             {/* Table Area */}
-            <div className="flex-1 overflow-auto bg-slate-50 dark:bg-[#0B1120] custom-scrollbar rounded-b-[2rem]">
-              <div className="min-w-[900px] p-6 md:p-8">
-                <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-sm border border-slate-100 dark:border-slate-800/60 overflow-hidden">
-                  <table className="w-full text-left border-collapse table-fixed bg-white dark:bg-slate-900">
-                    <thead>
-                      <tr>
-                        <th className="w-[200px] p-6 pb-8 font-bold text-slate-400 dark:text-slate-500 text-sm tracking-widest uppercase border-b border-slate-100 dark:border-slate-800 align-bottom bg-slate-50/50 dark:bg-slate-900/50">
-                           Specifications
-                        </th>
-                        {cars.map((car) => (
-                          <th key={car._id} className="w-[calc((100%-200px)/3)] p-6 pb-8 border-b border-slate-100 dark:border-slate-800 relative align-bottom bg-white dark:bg-slate-900">
-                            {(car.pricePerDay || car.price) === minPrice && minPrice > 0 && (
-                              <div className="absolute top-0 left-1/2 -translate-x-1/2 bg-gradient-to-r from-emerald-400 to-emerald-600 text-white text-[11px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-b-xl shadow-md flex items-center gap-1.5">
-                                <Star size={12} className="fill-white" />
-                                Best Value
-                              </div>
-                            )}
-                            <div className="h-40 mb-5 mt-4 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-inner group relative">
+            <div className="flex-1 overflow-auto bg-white dark:bg-[#0f1115] custom-scrollbar">
+              <div className="min-w-[800px] p-6 md:p-8">
+                <table className="w-full text-left border-collapse table-fixed">
+                  <thead>
+                    <tr>
+                      <th className="w-[180px] p-4 font-medium text-slate-500 dark:text-slate-400 text-sm align-bottom">
+                         Overview
+                      </th>
+                      {cars.map((car) => {
+                        const isBestValue = (car.pricePerDay || car.price) === minPrice && minPrice > 0;
+                        return (
+                          <th key={car._id} className="w-[calc((100%-180px)/3)] p-4 relative align-bottom">
+                            <div className="relative aspect-[16/10] mb-4 rounded-xl overflow-hidden bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800">
                               <img 
                                 src={`${API}${car.images?.[0]?.url || car.images?.[0] || car.image}`} 
                                 alt={`${car.brand} ${car.model}`}
-                                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                                className="w-full h-full object-cover"
                               />
-                              <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                              {isBestValue && (
+                                <div className="absolute top-2 left-2 bg-white/90 backdrop-blur dark:bg-black/90 text-slate-900 dark:text-white text-[10px] font-semibold px-2 py-1 rounded-md shadow-sm border border-slate-200 dark:border-slate-700 flex items-center gap-1">
+                                  <Star size={10} className="fill-yellow-400 text-yellow-400" />
+                                  Best Value
+                                </div>
+                              )}
                             </div>
-                            <h3 className="text-xl md:text-2xl font-bold font-heading text-slate-900 dark:text-white truncate tracking-tight" title={`${car.brand} ${car.model}`}>
+                            <h3 className="text-lg font-semibold text-slate-900 dark:text-white truncate">
                               {car.brand} {car.model}
                             </h3>
-                            <div className="mt-2 text-2xl md:text-3xl font-black text-primary-600 dark:text-primary-400 flex items-baseline gap-1">
+                            <div className="mt-1 text-xl font-bold text-slate-900 dark:text-white flex items-baseline gap-1">
                                NPR {car.pricePerDay || car.price} 
-                               <span className="text-xs md:text-sm text-slate-400 dark:text-slate-500 font-bold uppercase tracking-wider">/ day</span>
+                               <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">/ day</span>
                             </div>
                             <Button 
                               variant="primary" 
-                              className="w-full mt-6 shadow-lg shadow-primary-500/30 hover:shadow-primary-500/50 hover:-translate-y-0.5 transition-all py-3 font-bold text-lg rounded-xl"
+                              className="w-full mt-4 py-2.5 text-sm font-medium rounded-lg"
                               onClick={() => {
                                 onClose();
                                 navigate(`/book/${car._id}`);
                               }}
                             >
-                              Book Now
+                              Select Vehicle
                             </Button>
                           </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    
-                    <tbody className="text-slate-700 dark:text-slate-300 divide-y divide-slate-100 dark:divide-slate-800/60">
-                      {specs.map((row, rowIdx) => {
-                        const Icon = row.icon;
-                        return (
-                          <tr key={rowIdx} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group">
-                            <td className="p-5 px-6 font-semibold text-slate-800 dark:text-slate-200 bg-slate-50/50 dark:bg-slate-900/50 text-sm flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-slate-400 dark:text-slate-500 group-hover:text-primary-500 dark:group-hover:text-primary-400 transition-colors flex-shrink-0">
-                                <Icon size={16} strokeWidth={2.5} />
-                              </div>
-                              {row.label}
-                            </td>
-                            {cars.map((car) => (
-                              <td key={`${car._id}-${row.key}`} className="p-5 px-6 font-medium text-slate-900 dark:text-white text-center">
-                                <span className="inline-flex items-center justify-center px-4 py-2 bg-slate-100/50 dark:bg-slate-800/50 rounded-xl font-semibold text-[15px] border border-transparent group-hover:border-slate-200 dark:group-hover:border-slate-700 transition-colors w-full max-w-[180px]">
-                                  {row.key === 'rating' ? `${car[row.key] || '4.9'}/5` : (car[row.key] || 'N/A')} {row.suffix || ''}
-                                </span>
-                              </td>
-                            ))}
-                          </tr>
                         );
                       })}
-                      
-                      {/* Air Conditioning Check row */}
-                      <tr className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors group border-b-0">
-                        <td className="p-5 px-6 font-semibold text-slate-800 dark:text-slate-200 bg-slate-50/50 dark:bg-slate-900/50 text-sm flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center shadow-sm border border-slate-100 dark:border-slate-700 text-slate-400 dark:text-slate-500 group-hover:text-emerald-500 transition-colors flex-shrink-0">
-                            <Wind size={16} strokeWidth={2.5} />
-                          </div>
-                          Air Conditioning
-                        </td>
-                        {cars.map((car) => (
-                          <td key={`${car._id}-ac`} className="p-5 px-6 text-center">
-                            <div className="inline-flex items-center justify-center px-4 py-2 bg-emerald-50 dark:bg-emerald-500/10 rounded-xl border border-emerald-100 dark:border-emerald-500/20 w-full max-w-[180px]">
-                              <Check size={20} strokeWidth={3} className="text-emerald-500 dark:text-emerald-400" />
-                            </div>
+                    </tr>
+                  </thead>
+                  
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                    {specs.map((row, rowIdx) => {
+                      const Icon = row.icon;
+                      return (
+                        <tr key={rowIdx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/20 transition-colors">
+                          <td className="p-4 py-5 text-sm font-medium text-slate-600 dark:text-slate-400 flex items-center gap-3">
+                            <Icon size={18} className="text-slate-400 dark:text-slate-500" strokeWidth={1.5} />
+                            {row.label}
                           </td>
-                        ))}
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+                          {cars.map((car) => (
+                            <td key={`${car._id}-${row.key}`} className="p-4 py-5 text-center">
+                              {row.isBoolean ? (
+                                <div className="flex justify-center">
+                                  <Check size={18} className="text-slate-700 dark:text-slate-300" strokeWidth={2} />
+                                </div>
+                              ) : (
+                                <span className="text-sm font-medium text-slate-900 dark:text-slate-200">
+                                  {row.key === 'rating' ? `${car[row.key] || '4.9'}/5` : (car[row.key] || 'N/A')} {row.suffix || ''}
+                                </span>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
               </div>
             </div>
           </motion.div>

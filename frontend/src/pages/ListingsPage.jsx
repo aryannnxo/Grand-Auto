@@ -159,13 +159,6 @@ const ListingsPage = () => {
 
           {/* Main Content */}
           <main className="flex-1 w-full min-w-0">
-            <div className="mb-6">
-              <LiveSearchBar 
-                value={filters.search} 
-                onChange={(val) => setFilters(prev => ({ ...prev, search: val }))}
-              />
-            </div>
-
             {/* Header info */}
             <div className="flex justify-between items-center mb-6">
                <h2 className="text-xl font-bold font-heading text-slate-800 dark:text-white flex items-center">

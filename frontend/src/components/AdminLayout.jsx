@@ -18,7 +18,8 @@ import {
   PlusCircle,
   ChevronDown,
   Shield,
-  User
+  User,
+  MessageSquare
 } from "lucide-react";
 
 const AdminLayout = () => {
@@ -39,7 +40,8 @@ const AdminLayout = () => {
     { path: "/admin/cars", icon: CarFront, label: "Fleet" },
     { path: "/admin/rentals", icon: Key, label: "Rentals" },
     { path: "/admin/payments", icon: CreditCard, label: "Payments" },
-    { path: "/admin/mechanics", icon: Wrench, label: "Mechanics" }
+    { path: "/admin/mechanics", icon: Wrench, label: "Mechanics" },
+    { path: "/admin/messages", icon: MessageSquare, label: "Messages" }
   ];
 
   const bottomNavItems = [
@@ -142,6 +144,9 @@ const AdminLayout = () => {
             </div>
 
             <div className="flex items-center gap-4 pl-4 lg:pl-8 border-l border-slate-200 dark:border-white/5">
+               <button onClick={() => navigate('/admin/messages')} className="relative w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-primary-500 dark:hover:text-white transition-colors" title="Messages">
+                  <MessageSquare size={22} className="stroke-[2.2px]" />
+               </button>
                <button className="relative w-10 h-10 flex items-center justify-center text-slate-500 dark:text-slate-400 hover:text-primary-500 dark:hover:text-white transition-colors">
                   <Bell size={22} className="stroke-[2.2px]" />
                   <span className="absolute top-2 right-2 w-2 h-2 rounded-full bg-rose-500 border-2 border-white dark:border-[#030712]"></span>
@@ -162,7 +167,7 @@ const AdminLayout = () => {
         </header>
 
         {/* Scrollable Page Content */}
-        <main className="flex-1 overflow-y-auto px-8 md:px-14 py-10 w-full transition-all scroll-smooth">
+        <main className="flex-1 overflow-y-auto px-8 md:px-14 py-6 w-full transition-all scroll-smooth">
           <Outlet />
         </main>
 

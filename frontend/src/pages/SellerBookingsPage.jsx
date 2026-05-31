@@ -30,9 +30,13 @@ const SellerBookingsPage = () => {
   const [selectedBooking, setSelectedBooking] = useState(null);
 
   // Cash payment states
-  const [confirmModal, setConfirmModal] = useState(null); // booking object to confirm
-  const [confirmingId, setConfirmingId] = useState(null); // booking._id being confirmed
-  const [toast, setToast] = useState(null); // { type: 'success'|'error', msg: string }
+  const [confirmModal, setConfirmModal] = useState(null);
+  const [confirmingId, setConfirmingId] = useState(null);
+  const [toast, setToast] = useState(null);
+
+  // Approve / Reject states
+  const [approvingId, setApprovingId] = useState(null);
+  const [rejectingId, setRejectingId] = useState(null);
 
   const showToast = (type, msg) => {
     setToast({ type, msg });
@@ -78,17 +82,69 @@ const SellerBookingsPage = () => {
     }
   };
 
+  const approveBooking = async (bookingId) => {
+    setApprovingId(bookingId);
+    try {
+      const token = localStorage.getItem("token");
+      await axios.patch(`${API}/api/bookings/${bookingId}/approve`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showToast("success", "Booking approved! Customer has been notified.");
+      fetchBookings();
+    } catch (err) {
+      showToast("error", err.response?.data?.msg || "Failed to approve booking.");
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
+  const rejectBooking = async (bookingId) => {
+    setRejectingId(bookingId);
+    try {
+      const token = localStorage.getItem("token");
+      await axios.patch(`${API}/api/bookings/${bookingId}/reject`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      showToast("success", "Booking rejected. Customer has been notified.");
+      fetchBookings();
+    } catch (err) {
+      showToast("error", err.response?.data?.msg || "Failed to reject booking.");
+    } finally {
+      setRejectingId(null);
+    }
+  };
+
   const getStatusStyle = (status) => {
     switch (status) {
-      case "Confirmed":
-      case "Completed":
-        return "bg-emerald-100 text-emerald-600 border-emerald-200";
-      case "Pending":
-        return "bg-orange-100 text-orange-600 border-orange-200";
-      case "Cancelled":
+      case "confirmed":
+      case "completed":
+      case "active":
+        return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      case "pending-owner-approval":
+        return "bg-amber-100 text-amber-700 border-amber-200";
+      case "approved-awaiting-payment":
+        return "bg-blue-100 text-blue-700 border-blue-200";
+      case "confirmed-awaiting-cash-payment":
+        return "bg-purple-100 text-purple-700 border-purple-200";
+      case "cancelled":
+      case "rejected":
         return "bg-rose-100 text-rose-600 border-rose-200";
       default:
         return "bg-slate-100 text-slate-600 border-slate-200";
+    }
+  };
+
+  const humanizeStatus = (status) => {
+    switch (status) {
+      case "pending-owner-approval": return "Pending Approval";
+      case "approved-awaiting-payment": return "Approved – Awaiting Payment";
+      case "confirmed": return "Confirmed";
+      case "confirmed-awaiting-cash-payment": return "Awaiting Cash Payment";
+      case "active": return "Active";
+      case "completed": return "Completed";
+      case "cancelled": return "Cancelled";
+      case "rejected": return "Rejected";
+      default: return status;
     }
   };
 
@@ -310,15 +366,28 @@ const SellerBookingsPage = () => {
           <h1 className="text-3xl md:text-5xl font-black font-heading text-slate-900 dark:text-white tracking-tight">Incoming Bookings</h1>
           <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-xl">Track and manage reservations for your vehicles. Communicate with renters and coordinate pickups.</p>
         </div>
-        <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-4">
-          <div className="text-right">
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Total Active</p>
-            <p className="text-xl font-black text-slate-900 dark:text-white">
-              {bookings.filter(b => b.status === "Confirmed" || b.status === "confirmed-awaiting-cash-payment").length}
-            </p>
+        <div className="flex gap-4">
+          <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-amber-500 uppercase tracking-widest">Pending</p>
+              <p className="text-xl font-black text-slate-900 dark:text-white">
+                {bookings.filter(b => b.status === "pending-owner-approval").length}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center">
+              <AlertCircle size={20} />
+            </div>
           </div>
-          <div className="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center">
-            <TrendingUp size={20} />
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 flex items-center gap-3">
+            <div className="text-right">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Active</p>
+              <p className="text-xl font-black text-slate-900 dark:text-white">
+                {bookings.filter(b => ["confirmed", "active", "confirmed-awaiting-cash-payment"].includes(b.status)).length}
+              </p>
+            </div>
+            <div className="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center">
+              <TrendingUp size={20} />
+            </div>
           </div>
         </div>
       </div>
@@ -334,9 +403,11 @@ const SellerBookingsPage = () => {
         <div className="space-y-6">
           {bookings.map((booking) => {
             const isCashPending =
-              booking.paymentMethod === "Cash" && booking.paymentStatus !== "Paid";
+              booking.paymentMethod === "Cash" &&
+              booking.status === "confirmed-awaiting-cash-payment" &&
+              booking.paymentStatus !== "paid";
             const isCashVerified =
-              booking.paymentMethod === "Cash" && booking.paymentStatus === "Paid";
+              booking.paymentMethod === "Cash" && booking.paymentStatus === "paid";
             const isConfirming = confirmingId === booking._id;
 
             return (
@@ -362,17 +433,15 @@ const SellerBookingsPage = () => {
                     <div className="flex flex-wrap gap-2 mt-2">
                       {/* Status badge */}
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${getStatusStyle(booking.status)}`}>
-                        {booking.status === "confirmed-awaiting-cash-payment"
-                          ? "Awaiting Cash"
-                          : booking.status === "payment-confirmed"
-                          ? "Cash Paid"
-                          : booking.status}
+                        {humanizeStatus(booking.status)}
                       </span>
                       {/* Payment status badge */}
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
-                        booking.paymentStatus === "Paid"
+                        booking.paymentStatus === "paid"
                           ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                          : "bg-red-50 text-red-600 border-red-100"
+                          : booking.paymentStatus === "pending"
+                          ? "bg-blue-50 text-blue-600 border-blue-100"
+                          : "bg-slate-50 text-slate-500 border-slate-100"
                       }`}>
                         {booking.paymentStatus}
                       </span>
@@ -402,6 +471,7 @@ const SellerBookingsPage = () => {
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Renter Details</p>
                         <p className="font-bold text-slate-800 dark:text-white">{booking.user?.name}</p>
                       </div>
+
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
@@ -413,6 +483,7 @@ const SellerBookingsPage = () => {
                           {new Date(booking.startDate).toLocaleDateString()} — {new Date(booking.endDate).toLocaleDateString()}
                         </p>
                       </div>
+
                     </div>
                   </div>
 
@@ -425,6 +496,7 @@ const SellerBookingsPage = () => {
                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pickup Location</p>
                         <p className="font-bold text-slate-800 dark:text-white text-sm">{booking.pickupLocation}</p>
                       </div>
+
                     </div>
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 rounded-full bg-slate-50 dark:bg-slate-800 flex items-center justify-center text-slate-500">
@@ -440,14 +512,40 @@ const SellerBookingsPage = () => {
 
                 {/* Actions */}
                 <div className="w-full xl:w-auto flex xl:flex-col gap-3">
-                  <button className="flex-1 xl:w-44 py-3 bg-black dark:bg-white text-white dark:text-black rounded-xl font-bold text-sm hover:scale-105 transition-transform">
-                    Contact Renter
-                  </button>
+
+                  {/* ✅ Approve / Reject — only for pending-owner-approval */}
+                  {booking.status === "pending-owner-approval" && (
+                    <>
+                      <button
+                        onClick={() => approveBooking(booking._id)}
+                        disabled={approvingId === booking._id || rejectingId === booking._id}
+                        className="flex-1 xl:w-44 py-3 bg-emerald-500 hover:bg-emerald-600 disabled:opacity-60 text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                      >
+                        {approvingId === booking._id ? (
+                          <><Loader2 size={15} className="animate-spin" /> Approving...</>
+                        ) : (
+                          <><CheckCircle2 size={15} /> Approve</>  
+                        )}
+                      </button>
+                      <button
+                        onClick={() => rejectBooking(booking._id)}
+                        disabled={approvingId === booking._id || rejectingId === booking._id}
+                        className="flex-1 xl:w-44 py-3 bg-rose-500 hover:bg-rose-600 disabled:opacity-60 text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                      >
+                        {rejectingId === booking._id ? (
+                          <><Loader2 size={15} className="animate-spin" /> Rejecting...</>
+                        ) : (
+                          <><XCircle size={15} /> Reject</>
+                        )}
+                      </button>
+                    </>
+                  )}
+
                   <button
                     onClick={() => setSelectedBooking(booking)}
                     className="flex-1 xl:w-44 py-3 bg-slate-50 dark:bg-slate-800 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-700 rounded-xl font-bold text-sm transition-colors hover:bg-slate-100"
                   >
-                    View Receipt
+                    View Details
                   </button>
 
                   {/* Mark as Paid — only for unverified cash bookings */}
@@ -458,20 +556,14 @@ const SellerBookingsPage = () => {
                       className="flex-1 xl:w-44 py-3 bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-white rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
                     >
                       {isConfirming ? (
-                        <>
-                          <Loader2 size={15} className="animate-spin" />
-                          Confirming...
-                        </>
+                        <><Loader2 size={15} className="animate-spin" /> Confirming...</>
                       ) : (
-                        <>
-                          <Banknote size={15} />
-                          Mark as Paid
-                        </>
+                        <><Banknote size={15} /> Mark as Paid</>
                       )}
                     </button>
                   )}
 
-                  {/* Cash Verified indicator pill (replaces button after confirmation) */}
+                  {/* Cash Verified indicator pill */}
                   {isCashVerified && (
                     <div className="flex-1 xl:w-44 py-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 rounded-xl font-bold text-sm flex items-center justify-center gap-2">
                       <ShieldCheck size={15} />

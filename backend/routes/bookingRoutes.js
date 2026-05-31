@@ -167,6 +167,37 @@ router.get("/owner-bookings", protect, async (req, res) => {
   }
 });
 
+// ✅ Get blocked date ranges for a vehicle (public — no auth needed for calendar display)
+router.get("/vehicle/:vehicleId/blocked-dates", async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+
+    const BLOCKING_STATUSES = [
+      "pending-owner-approval",
+      "approved-awaiting-payment",
+      "confirmed",
+      "confirmed-awaiting-cash-payment",
+      "active",
+    ];
+
+    const bookings = await Booking.find({
+      vehicle: vehicleId,
+      status: { $in: BLOCKING_STATUSES },
+    }).select("startDate endDate status");
+
+    const blockedRanges = bookings.map((b) => ({
+      startDate: b.startDate,
+      endDate: b.endDate,
+      status: b.status,
+    }));
+
+    res.json(blockedRanges);
+  } catch (err) {
+    console.error("Blocked dates error:", err);
+    res.status(500).json({ msg: "Server error: " + err.message });
+  }
+});
+
 // ✅ Get a specific booking by ID
 router.get("/:id", protect, async (req, res) => {
   try {

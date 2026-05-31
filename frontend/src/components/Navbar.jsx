@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { User, Shield, Car, LayoutDashboard, Menu, X, LogOut, FileText, Wrench, Bell, CheckCircle, XCircle, AlertTriangle, RefreshCw, CreditCard } from "lucide-react";
+import { User, Shield, Car, LayoutDashboard, Menu, X, LogOut, FileText, Wrench, Bell, CheckCircle, XCircle, AlertTriangle, RefreshCw, CreditCard, Search, MessageSquare } from "lucide-react";
 import axios from "axios";
 
 const API = "http://localhost:5000";
@@ -14,6 +14,7 @@ const Navbar = () => {
   const [userRole, setUserRole] = useState("user");
   const [isVerifiedOwner, setIsVerifiedOwner] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   
   const navigate = useNavigate();
   const location = useLocation();
@@ -21,6 +22,7 @@ const Navbar = () => {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [notifDropdownOpen, setNotifDropdownOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
 
   const fetchNotifications = async () => {
     try {
@@ -55,12 +57,15 @@ const Navbar = () => {
       if (notifDropdownOpen && !event.target.closest(".notif-container")) {
         setNotifDropdownOpen(false);
       }
+      if (profileDropdownOpen && !event.target.closest(".profile-container")) {
+        setProfileDropdownOpen(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
-  }, [notifDropdownOpen]);
+  }, [notifDropdownOpen, profileDropdownOpen]);
 
   const handleMarkAllRead = async () => {
     try {
@@ -121,17 +126,17 @@ const Navbar = () => {
   const getIconStyle = (type) => {
     switch (type) {
       case "booking_approved":
-        return "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+        return "bg-emerald-50 text-emerald-500 border-emerald-100";
       case "booking_rejected":
-        return "bg-rose-500/10 border-rose-500/20 text-rose-400";
+        return "bg-rose-50 text-rose-500 border-rose-100";
       case "payment_successful":
-        return "bg-emerald-500/10 border-emerald-500/20 text-emerald-400";
+        return "bg-emerald-50 text-emerald-500 border-emerald-100";
       case "booking_cancelled":
-        return "bg-amber-500/10 border-amber-500/20 text-amber-400";
+        return "bg-amber-50 text-amber-500 border-amber-100";
       case "refund_processed":
-        return "bg-cyan-500/10 border-cyan-500/20 text-cyan-400";
+        return "bg-cyan-50 text-cyan-500 border-cyan-100";
       default:
-        return "bg-slate-500/10 border-slate-500/20 text-slate-400";
+        return "bg-slate-50 text-slate-500 border-slate-200";
     }
   };
 
@@ -169,36 +174,33 @@ const Navbar = () => {
   const getNavStyle = (path) => {
     const isActive = location.pathname === path || (path === "/listings" && location.pathname.startsWith("/listings"));
     if (isActive) {
-      return "bg-white text-slate-900 rounded-full px-5 py-2 font-bold text-sm tracking-wide flex items-center gap-2 shadow-sm";
+      return "text-primary-600 font-bold text-sm tracking-wide flex items-center gap-2";
     }
-    return "text-slate-300 hover:text-white rounded-full px-5 py-2 font-medium text-sm tracking-wide flex items-center gap-2 transition-colors";
+    return "text-slate-600 hover:text-slate-900 font-medium text-sm tracking-wide flex items-center gap-2 transition-colors";
   };
 
   return (
-    <nav className="bg-[#070b14] sticky top-0 z-50 w-full pt-4 pb-4">
-      <div className="max-w-[1400px] mx-auto px-6 flex items-center justify-between">
-        <div className="flex items-center gap-10">
+    <nav className="bg-white sticky top-0 z-50 w-full py-3 border-b border-slate-200">
+      <div className="max-w-[1400px] mx-auto px-4 lg:px-6 flex items-center justify-between gap-4">
+        
+        {/* Left Section: Logo & Links */}
+        <div className="flex items-center gap-8 shrink-0">
           <Link to="/" className="flex items-center gap-2 group">
             <div className="relative flex items-center justify-center w-10 h-10 mr-1">
-              {/* Soft glow effect behind the logo */}
-              <div className="absolute inset-0 bg-white rounded-xl blur-[8px] opacity-20 group-hover:opacity-40 transition-opacity duration-500"></div>
-              
-              {/* Premium dark container */}
-              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-[#0b0f19] to-slate-900 border border-white/10 flex items-center justify-center z-10">
-                 {/* Stylized abstract 'G' */}
+              <div className="relative w-10 h-10 rounded-xl bg-gradient-to-tr from-primary-600 to-primary-500 flex items-center justify-center z-10 shadow-sm">
                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-white">
                     <path d="M20.5 12A8.5 8.5 0 1 1 12 3.5c2.3 0 4.4.9 6 2.3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
                     <path d="M12 12h8.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
                  </svg>
               </div>
             </div>
-            <span className="text-2xl font-bold text-white tracking-tight">
+            <span className="text-2xl font-black font-heading text-slate-900 tracking-tight">
               GrandAuto
             </span>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden lg:flex items-center gap-2 bg-[#1A1F2B] p-1.5 rounded-full">
+          <div className="hidden lg:flex items-center gap-6">
             <Link to="/" className={getNavStyle("/")}>
               Home
             </Link>
@@ -206,35 +208,54 @@ const Navbar = () => {
               Fleet
             </Link>
 
+
+
             {isLoggedIn && !isVerifiedOwner && userRole !== "admin" && (
               <Link to="/apply-owner" className={getNavStyle("/apply-owner")}>Become a Seller</Link>
-            )}
-            
-            {isLoggedIn && isVerifiedOwner && userRole !== "admin" && (
-              <Link to="/seller/dashboard" className={getNavStyle("/seller/dashboard")}>Dashboard</Link>
-            )}
-
-            {isLoggedIn && userRole === "admin" && (
-              <Link to="/admin/dashboard" className={getNavStyle("/admin/dashboard")}>
-                 Dashboard
-              </Link>
             )}
           </div>
         </div>
 
-        {/* Right Section */}
-        <div className="flex items-center gap-4">
+        {/* Center Section: Search Bar */}
+        <div className="hidden md:flex flex-1 max-w-xl mx-4">
+          <div className="w-full flex items-center bg-slate-100 rounded-full px-4 py-2.5 border border-transparent focus-within:border-primary-500 focus-within:bg-white focus-within:shadow-[0_0_0_4px_rgba(75,107,251,0.1)] transition-all">
+            <Search size={18} className="text-slate-400 mr-2 shrink-0" />
+            <input 
+              type="text" 
+              placeholder="Search or ask about cars" 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full bg-transparent border-none outline-none text-sm text-slate-900 placeholder:text-slate-500 font-medium"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && searchQuery.trim()) {
+                  navigate(`/listings?search=${encodeURIComponent(searchQuery.trim())}`);
+                }
+              }}
+            />
+          </div>
+        </div>
 
+        {/* Right Section: Auth & Profile */}
+        <div className="flex items-center gap-4 shrink-0">
           {isLoggedIn ? (
             <div className="flex items-center gap-3">
+              {/* Messages Button */}
+              <Link 
+                to={userRole === "admin" ? "/admin/messages" : (isVerifiedOwner ? "/seller/messages" : "/dashboard?view=messages")}
+                className="relative p-2 rounded-full transition-all duration-300 focus:outline-none flex items-center justify-center w-10 h-10 border bg-slate-50 border-slate-100 hover:bg-slate-100 text-slate-600 hover:text-slate-900"
+                title="Messages"
+              >
+                <MessageSquare size={18} />
+              </Link>
+
               {/* Notifications Bell */}
               <div className="relative notif-container">
                 <button 
                   onClick={() => setNotifDropdownOpen(!notifDropdownOpen)}
-                  className={`relative p-2 rounded-full transition-all duration-300 focus:outline-none flex items-center justify-center w-9 h-9 border ${
+                  className={`relative p-2 rounded-full transition-all duration-300 focus:outline-none flex items-center justify-center w-10 h-10 border ${
                     notifDropdownOpen 
-                      ? "bg-primary-500/20 border-primary-500/40 text-white shadow-[0_0_15px_rgba(75,107,251,0.25)]" 
-                      : "bg-[#1A1F2B] border-white/5 hover:border-white/10 hover:bg-[#232A3B] text-slate-300 hover:text-white"
+                      ? "bg-primary-50 border-primary-100 text-primary-600" 
+                      : "bg-slate-50 border-slate-100 hover:bg-slate-100 text-slate-600 hover:text-slate-900"
                   }`}
                 >
                   <motion.div
@@ -263,7 +284,7 @@ const Navbar = () => {
                         animate={{ scale: 1, opacity: 1 }}
                         exit={{ scale: 0, opacity: 0 }}
                         transition={{ type: "spring", stiffness: 500, damping: 15 }}
-                        className="absolute -top-1.5 -right-1.5 min-w-5 h-5 px-1.5 bg-rose-500 text-white text-[9px] font-black rounded-full flex items-center justify-center border-2 border-[#070b14] shadow-lg shadow-rose-500/30"
+                        className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1.5 bg-rose-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white shadow-sm"
                       >
                         {unreadCount}
                       </motion.span>
@@ -278,20 +299,20 @@ const Navbar = () => {
                       animate={{ opacity: 1, y: 0, scale: 1 }}
                       exit={{ opacity: 0, y: 15, scale: 0.95 }}
                       transition={{ duration: 0.15, ease: "easeOut" }}
-                      className="absolute right-0 mt-3 w-80 sm:w-96 bg-[#1A1F2B]/95 backdrop-blur-md border border-slate-800 rounded-3xl shadow-2xl overflow-hidden z-50 origin-top-right text-left"
+                      className="absolute right-0 mt-3 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden z-50 origin-top-right text-left"
                     >
                       {/* Header */}
-                      <div className="p-5 pb-4 border-b border-slate-800 flex items-center justify-between">
+                      <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <div className="flex items-center gap-2">
-                          <h3 className="font-heading font-black text-white text-sm tracking-wide uppercase">Notifications</h3>
+                          <h3 className="font-bold text-slate-900 text-sm">Notifications</h3>
                           {unreadCount > 0 && (
-                            <span className="px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 text-[9px] font-black uppercase tracking-wider">{unreadCount} new</span>
+                            <span className="px-2 py-0.5 rounded-full bg-rose-100 text-rose-600 text-[10px] font-bold uppercase tracking-wider">{unreadCount} new</span>
                           )}
                         </div>
                         {unreadCount > 0 && (
                           <button 
                             onClick={handleMarkAllRead}
-                            className="text-[10px] font-black uppercase tracking-wider text-slate-400 hover:text-white transition-colors"
+                            className="text-xs font-medium text-primary-600 hover:text-primary-700 transition-colors"
                           >
                             Mark all read
                           </button>
@@ -299,7 +320,7 @@ const Navbar = () => {
                       </div>
 
                       {/* Notifications List */}
-                      <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-800/50">
+                      <div className="max-h-[360px] overflow-y-auto divide-y divide-slate-100">
                         {notifications.length > 0 ? (
                           notifications.map((notif) => (
                             <div 
@@ -307,11 +328,11 @@ const Navbar = () => {
                               onClick={() => {
                                 if (!notif.isRead) handleMarkSingleRead(notif._id);
                               }}
-                              className={`p-4 flex gap-3 hover:bg-slate-800/30 cursor-pointer transition-all duration-200 relative ${!notif.isRead ? "bg-slate-800/10" : ""}`}
+                              className={`p-4 flex gap-3 hover:bg-slate-50 cursor-pointer transition-all duration-200 relative ${!notif.isRead ? "bg-primary-50/30" : ""}`}
                             >
                               {/* Unread dot indicator */}
                               {!notif.isRead && (
-                                <div className="absolute top-5 left-1.5 w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                <div className="absolute top-5 left-1.5 w-1.5 h-1.5 rounded-full bg-primary-500" />
                               )}
 
                               {/* Icon container */}
@@ -321,14 +342,14 @@ const Navbar = () => {
 
                               <div className="flex-1 min-w-0">
                                 <div className="flex justify-between items-baseline gap-2 mb-0.5">
-                                  <h4 className={`text-xs font-bold truncate ${!notif.isRead ? "text-white" : "text-slate-300"}`}>
+                                  <h4 className={`text-sm font-semibold truncate ${!notif.isRead ? "text-slate-900" : "text-slate-700"}`}>
                                     {notif.title}
                                   </h4>
-                                  <span className="text-[9px] text-slate-500 font-bold shrink-0">
+                                  <span className="text-[10px] text-slate-500 font-medium shrink-0">
                                     {formatRelativeTime(notif.createdAt)}
                                   </span>
                                 </div>
-                                <p className={`text-[11px] leading-relaxed break-words ${!notif.isRead ? "text-slate-200" : "text-slate-400"}`}>
+                                <p className={`text-xs leading-relaxed break-words ${!notif.isRead ? "text-slate-600" : "text-slate-500"}`}>
                                   {notif.message}
                                 </p>
                               </div>
@@ -336,12 +357,12 @@ const Navbar = () => {
                           ))
                         ) : (
                           <div className="py-12 px-6 text-center space-y-4">
-                            <div className="w-12 h-12 bg-slate-800/30 text-slate-500 rounded-full flex items-center justify-center mx-auto border border-slate-800/40">
-                              <Bell size={20} className="opacity-40 animate-pulse" />
+                            <div className="w-12 h-12 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center mx-auto border border-slate-100">
+                              <Bell size={20} className="opacity-40" />
                             </div>
                             <div className="space-y-1">
-                              <h4 className="text-xs font-bold text-slate-300">All caught up!</h4>
-                              <p className="text-[10px] text-slate-500 max-w-[200px] mx-auto">No notifications right now. We'll update you when there's news!</p>
+                              <h4 className="text-sm font-semibold text-slate-900">All caught up!</h4>
+                              <p className="text-xs text-slate-500 max-w-[200px] mx-auto">No notifications right now. We'll update you when there's news!</p>
                             </div>
                           </div>
                         )}
@@ -351,32 +372,86 @@ const Navbar = () => {
                 </AnimatePresence>
               </div>
 
-              <Link to="/profile" className="flex items-center gap-2 bg-[#1A1F2B] pl-2 pr-4 py-1.5 rounded-full hover:bg-[#232A3B] transition-colors">
-                {profileImage ? (
-                  <img src={`${API}${profileImage}`} alt="Profile" className="w-8 h-8 rounded-full object-cover" />
-                ) : (
-                  <div className="w-8 h-8 rounded-full bg-primary-500 flex items-center justify-center text-white font-bold text-sm">
-                    {getInitials()}
+              {/* Profile Dropdown */}
+              <div className="relative profile-container">
+                <button 
+                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                  className="flex items-center gap-2 bg-slate-50 border border-slate-200 pl-1.5 pr-4 py-1.5 rounded-full hover:bg-slate-100 transition-colors shadow-sm focus:outline-none"
+                >
+                  {profileImage ? (
+                    <img src={`${API}${profileImage}`} alt="Profile" className="w-8 h-8 rounded-full object-cover border border-white" />
+                  ) : (
+                    <div className="w-8 h-8 rounded-full bg-primary-100 text-primary-700 flex items-center justify-center font-bold text-sm border border-primary-200">
+                      {getInitials()}
+                    </div>
+                  )}
+                  <div className="hidden sm:flex flex-col text-left">
+                    <span className="text-sm text-slate-900 font-semibold block truncate max-w-[100px] leading-none mb-0.5">
+                      {userName || "User"}
+                    </span>
+                    <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider leading-none">
+                      {userRole === 'admin' ? 'Admin' : isVerifiedOwner ? 'Seller' : 'User'}
+                    </span>
                   </div>
-                )}
-                <span className="text-sm text-white font-medium block truncate max-w-[100px]">
-                  {userName || "User"}
-                </span>
-                <span className="text-slate-400 ml-1 text-xs px-2 py-0.5 rounded bg-slate-800">
-                  {userRole === 'admin' ? 'Admin' : isVerifiedOwner ? 'Seller' : 'User'}
-                </span>
-              </Link>
-              <button onClick={handleLogout} className="text-slate-400 hover:text-white transition-colors hidden sm:block p-2">
-                <LogOut size={18} />
-              </button>
+                </button>
+
+                <AnimatePresence>
+                  {profileDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                      transition={{ duration: 0.15, ease: "easeOut" }}
+                      className="absolute right-0 mt-3 w-64 bg-slate-900 border border-slate-800 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden z-50 origin-top-right text-left"
+                    >
+                      {/* User Info Header */}
+                      <div className="p-4 border-b border-slate-800 bg-slate-800/50">
+                        <p className="font-bold text-white text-sm truncate">{userName || "User"}</p>
+                        <p className="text-slate-400 text-xs truncate mt-0.5">{userEmail || "user@example.com"}</p>
+                      </div>
+
+                      <div className="p-2 flex flex-col gap-1">
+                        <Link 
+                          to="/profile" 
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium"
+                        >
+                          <User size={16} />
+                          Profile
+                        </Link>
+                        
+                        <Link 
+                          to={userRole === 'admin' ? '/admin/dashboard' : isVerifiedOwner ? '/seller/dashboard' : '/dashboard'} 
+                          onClick={() => setProfileDropdownOpen(false)}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium"
+                        >
+                          <LayoutDashboard size={16} />
+                          Dashboard
+                        </Link>
+                        
+                        {/* Divider */}
+                        <div className="h-px bg-slate-800 my-1 mx-2"></div>
+                        
+                        <button 
+                          onClick={() => { handleLogout(); setProfileDropdownOpen(false); }}
+                          className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors text-sm font-medium w-full text-left"
+                        >
+                          <LogOut size={16} />
+                          Logout
+                        </button>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
             </div>
           ) : (
              <div className="flex items-center gap-3">
-               <button onClick={() => navigate('/login')} className="text-slate-300 hover:text-white font-medium px-4">
+               <button onClick={() => navigate('/login')} className="text-slate-600 hover:text-slate-900 font-medium text-sm px-3 hidden sm:block">
                  Login
                </button>
-               <button onClick={() => navigate('/signup')} className="bg-primary-500 hover:bg-primary-600 text-white font-bold py-2 px-6 rounded-full transition-colors">
-                 Sign Up
+               <button onClick={() => navigate('/signup')} className="bg-slate-900 hover:bg-slate-800 text-white font-medium text-sm py-2 px-5 rounded-full transition-colors shadow-sm">
+                 Register
                </button>
              </div>
           )}
@@ -384,7 +459,7 @@ const Navbar = () => {
            {/* Mobile Toggle */}
            <button 
              onClick={() => setMobileMenuOpen(!mobileMenuOpen)} 
-             className="lg:hidden p-2 text-slate-300 hover:text-white"
+             className="lg:hidden p-2 text-slate-600 hover:text-slate-900"
            >
              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
            </button>
@@ -398,26 +473,83 @@ const Navbar = () => {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="lg:hidden bg-[#1A1F2B] border-t border-slate-800 mt-4 overflow-hidden"
+            className="lg:hidden bg-white border-t border-slate-200 mt-3 overflow-hidden shadow-lg"
           >
-            <div className="px-6 py-4 flex flex-col gap-2">
-              <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-white font-medium py-3 border-b border-white/5">Home</Link>
-              <Link to="/listings" onClick={() => setMobileMenuOpen(false)} className="text-white font-medium py-3 border-b border-white/5">Fleet</Link>
+            <div className="px-4 py-4 flex flex-col gap-2">
+              <div className="mb-4">
+                <div className="w-full flex items-center bg-slate-100 rounded-xl px-4 py-3 border border-transparent focus-within:border-primary-500">
+                  <Search size={18} className="text-slate-400 mr-2 shrink-0" />
+                  <input 
+                    type="text" 
+                    placeholder="Search cars..." 
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-transparent border-none outline-none text-sm text-slate-900"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && searchQuery.trim()) {
+                        navigate(`/listings?search=${encodeURIComponent(searchQuery.trim())}`);
+                        setMobileMenuOpen(false);
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+
+              <Link to="/" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 font-medium py-3 border-b border-slate-100 flex items-center"><Car className="mr-3 text-slate-400" size={18} /> Home</Link>
+              <Link to="/listings" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 font-medium py-3 border-b border-slate-100 flex items-center"><Car className="mr-3 text-slate-400" size={18} /> Fleet</Link>
+              
+              {isLoggedIn && (
+                <Link 
+                  to={userRole === "admin" ? "/admin/messages" : (isVerifiedOwner ? "/seller/messages" : "/dashboard?view=messages")} 
+                  onClick={() => setMobileMenuOpen(false)} 
+                  className="text-slate-700 font-medium py-3 border-b border-slate-100 flex items-center"
+                >
+                  <FileText className="mr-3 text-slate-400" size={18} /> Messages
+                </Link>
+              )}
               
               {isLoggedIn ? (
                 <>
-                  {userRole === "admin" && (
-                    <Link to="/admin/dashboard" onClick={() => setMobileMenuOpen(false)} className="text-rose-400 font-bold py-3 border-b border-white/5">Admin Dashboard</Link>
-                  )}
                   {!isVerifiedOwner && userRole !== "admin" && (
-                    <Link to="/apply-owner" onClick={() => setMobileMenuOpen(false)} className="text-white font-medium py-3 border-b border-white/5">Become a Seller</Link>
+                    <Link to="/apply-owner" onClick={() => setMobileMenuOpen(false)} className="text-slate-700 font-medium py-3 border-b border-slate-100 flex items-center"><Shield className="mr-3 text-slate-400" size={18} /> Become a Seller</Link>
                   )}
-                  <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className="text-left text-slate-400 font-medium py-3">Log out</button>
+
+                  {/* Mobile Profile Card */}
+                  <div className="mt-3 bg-slate-900 rounded-2xl overflow-hidden">
+                    {/* User Info */}
+                    <div className="px-4 py-4 border-b border-slate-800 bg-slate-800/60">
+                      <p className="font-bold text-white text-sm truncate">{userName || "User"}</p>
+                      <p className="text-slate-400 text-xs truncate mt-0.5">{userEmail || ""}</p>
+                    </div>
+                    <div className="p-2 flex flex-col gap-1">
+                      <Link
+                        to="/profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium"
+                      >
+                        <User size={17} /> Profile
+                      </Link>
+                      <Link
+                        to={userRole === "admin" ? "/admin/dashboard" : isVerifiedOwner ? "/seller/dashboard" : "/dashboard"}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium"
+                      >
+                        <LayoutDashboard size={17} /> Dashboard
+                      </Link>
+                      <div className="h-px bg-slate-800 my-1 mx-2"></div>
+                      <button
+                        onClick={() => { handleLogout(); setMobileMenuOpen(false); }}
+                        className="flex items-center gap-3 px-3 py-3 rounded-xl text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 transition-colors text-sm font-medium w-full text-left"
+                      >
+                        <LogOut size={17} /> Logout
+                      </button>
+                    </div>
+                  </div>
                 </>
               ) : (
                 <div className="flex flex-col gap-3 mt-4">
-                  <button onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} className="bg-slate-800 text-white font-medium py-3 rounded-xl border border-slate-700">Login</button>
-                  <button onClick={() => { navigate('/signup'); setMobileMenuOpen(false); }} className="bg-primary-500 text-white font-bold py-3 rounded-xl">Sign Up</button>
+                  <button onClick={() => { navigate('/login'); setMobileMenuOpen(false); }} className="bg-slate-50 text-slate-900 font-medium py-3 rounded-xl border border-slate-200">Login</button>
+                  <button onClick={() => { navigate('/signup'); setMobileMenuOpen(false); }} className="bg-slate-900 text-white font-medium py-3 rounded-xl shadow-sm">Sign Up</button>
                 </div>
               )}
             </div>
