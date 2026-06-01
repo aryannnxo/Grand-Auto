@@ -31,8 +31,8 @@ const SpecSection = ({ vehicle }) => {
           <div className="border border-slate-200 rounded-b-lg overflow-hidden">
             {engineSpecs.map((spec, i) => (
               <div key={i} className={`flex py-3 px-4 ${i !== engineSpecs.length - 1 ? 'border-b border-slate-100' : ''}`}>
-                 <span className="w-1/2 text-[13px] text-slate-500">{spec.label}</span>
-                 <span className="w-1/2 text-[13px] font-medium text-slate-900">{spec.value}</span>
+                <span className="w-1/2 text-[13px] text-slate-500">{spec.label}</span>
+                <span className="w-1/2 text-[13px] font-medium text-slate-900">{spec.value}</span>
               </div>
             ))}
           </div>
@@ -46,17 +46,13 @@ const SpecSection = ({ vehicle }) => {
           <div className="border border-slate-200 rounded-b-lg overflow-hidden">
             {dimensionSpecs.map((spec, i) => (
               <div key={i} className={`flex py-3 px-4 ${i !== dimensionSpecs.length - 1 ? 'border-b border-slate-100' : ''}`}>
-                 <span className="w-1/2 text-[13px] text-slate-500">{spec.label}</span>
-                 <span className="w-1/2 text-[13px] font-medium text-slate-900">{spec.value}</span>
+                <span className="w-1/2 text-[13px] text-slate-500">{spec.label}</span>
+                <span className="w-1/2 text-[13px] font-medium text-slate-900">{spec.value}</span>
               </div>
             ))}
           </div>
         </div>
       </div>
-      
-      <button className="text-orange-500 font-bold text-sm hover:underline mt-6">
-        View all specifications
-      </button>
     </div>
   );
 };

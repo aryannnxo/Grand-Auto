@@ -2,110 +2,65 @@ const mongoose = require("mongoose");
 
 const mechanicRequestSchema = new mongoose.Schema(
   {
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+    requestedBy: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    requestSource: { type: String, enum: ["customer", "seller"], required: true },
+    customer: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    seller: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
+    vehicle: { type: mongoose.Schema.Types.ObjectId, ref: "Vehicle", required: true },
+    booking: { type: mongoose.Schema.Types.ObjectId, ref: "Booking", default: null },
+    issueType: {
+      type: String,
+      enum: [
+        "Accident / Damage",
+        "Engine Issue",
+        "Flat Tyre",
+        "Battery Problem",
+        "Brake Problem",
+        "Roadside Assistance",
+        "General Service",
+        "Other",
+      ],
       required: true,
     },
-    vehicle: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Vehicle",
-    },
-    booking: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Booking",
-    },
-    serviceType: {
-      type: String,
-      enum: ["Roadside Assistance", "Workshop Repair", "Vehicle Inspection", "Tire / Wheel Issue", "Battery Issue", "Engine Problem", "Brake Problem", "Accident / Damage Check", "General Maintenance", "Other", "Emergency Breakdown", "Inspection"],
-      required: true,
-    },
-    description: {
-      type: String,
-      required: true,
-    },
-    location: {
-      type: String,
-      required: true,
-    },
-    city: {
-      type: String,
-    },
-    landmark: {
-      type: String,
-    },
-    latitude: {
-      type: Number,
-    },
-    longitude: {
-      type: Number,
-    },
-    requestedDate: {
-      type: Date,
-      required: true,
-    },
-    preferredTime: {
-      type: String,
-    },
-    isEmergency: {
-      type: Boolean,
-      default: false,
-    },
+    problemDescription: { type: String, required: true },
+    location: { type: String, required: true },
+    latitude: { type: Number, default: null },
+    longitude: { type: Number, default: null },
+    images: [{ type: String }],
+    contactPhone: { type: String, default: "" },
+    isEmergency: { type: Boolean, default: false },
     priority: {
       type: String,
       enum: ["low", "medium", "high", "emergency"],
       default: "medium",
     },
-    images: [{
-      type: String,
-    }],
-    contactName: {
-      type: String,
-    },
-    contactEmail: {
-      type: String,
-    },
-    contactPhone: {
-      type: String,
-    },
     status: {
       type: String,
-      enum: ["pending", "approved", "assigned", "in-progress", "completed", "cancelled", "rejected"],
-      default: "pending",
+      enum: [
+        "pending-admin-review",
+        "approved",
+        "assigned",
+        "accepted-by-mechanic",
+        "in-progress",
+        "fixed",
+        "completed",
+        "rejected",
+        "cancelled",
+      ],
+      default: "pending-admin-review",
     },
-    assignedMechanicName: {
-      type: String,
-    },
-    assignedMechanicPhone: {
-      type: String,
-    },
-    assignedMechanicEmail: {
-      type: String,
-    },
-    // Backwards compatibility
-    assignedMechanic: {
-      type: String,
-      default: "",
-    },
-    estimatedCost: {
-      type: Number,
-    },
-    finalCost: {
-      type: Number,
-    },
-    adminNotes: {
-      type: String,
-      default: "",
-    },
-    rejectionReason: {
-      type: String,
-    },
-    completionNotes: {
-      type: String,
-    },
-    completedAt: {
-      type: Date,
-    },
+    assignedMechanic: { type: mongoose.Schema.Types.ObjectId, ref: "Mechanic", default: null },
+    mechanicName: { type: String, default: "" },
+    mechanicPhone: { type: String, default: "" },
+    estimatedCost: { type: Number, default: null },
+    finalCost: { type: Number, default: null },
+    adminNotes: { type: String, default: "" },
+    mechanicNotes: { type: String, default: "" },
+    ownerVerificationNotes: { type: String, default: "" },
+    rejectionReason: { type: String, default: "" },
+    afterRepairImages: [{ type: String }],
+    fixedAt: { type: Date, default: null },
+    completedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );

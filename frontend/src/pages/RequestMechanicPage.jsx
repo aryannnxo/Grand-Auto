@@ -3,9 +3,9 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 import {
-  Wrench, AlertTriangle, Car, ClipboardCheck, MapPin, 
-  CalendarDays, FileText, ChevronLeft, CheckCircle2, 
-  Shield, Lock, Clock, Navigation, Check, Battery, 
+  Wrench, AlertTriangle, Car, ClipboardCheck, MapPin,
+  CalendarDays, FileText, ChevronLeft, CheckCircle2,
+  Shield, Lock, Clock, Navigation, Check, Battery,
   Wind, Droplet, Star, Phone, Camera, ArrowRight, Home, User
 } from "lucide-react";
 import Navbar from "../components/Navbar";
@@ -14,25 +14,34 @@ import { Button } from "../components/ui/Button";
 const API = "http://localhost:5000";
 
 const SERVICE_TYPES = [
-  { id: "Emergency Breakdown", icon: AlertTriangle, label: "Emergency Breakdown", desc: "Towing & urgent repair", price: 5000, time: "Immediate" },
-  { id: "Engine Repair", icon: Wrench, label: "Engine Repair", desc: "Diagnostic & mechanical fix", price: 3000, time: "2-4 hrs" },
-  { id: "Flat Tire", icon: Car, label: "Flat Tire", desc: "Patch or replace", price: 1000, time: "30 mins" },
-  { id: "Battery Jumpstart", icon: Battery, label: "Battery Jump", desc: "Jumpstart or replace", price: 800, time: "20 mins" },
-  { id: "Oil Change", icon: Droplet, label: "Oil Change", desc: "Premium synthetic oil", price: 2500, time: "45 mins" },
-  { id: "AC Repair", icon: Wind, label: "AC Repair", desc: "Gas refill & servicing", price: 2000, time: "1 hr" },
-  { id: "Inspection", icon: ClipboardCheck, label: "Vehicle Inspection", desc: "Full diagnostic check", price: 1500, time: "1 hr" },
-  { id: "Home Service", icon: Home, label: "Home Service", desc: "General maintenance", price: 2000, time: "Flexible" }
+  { id: "Accident / Damage", icon: AlertTriangle, label: "Accident / Damage", desc: "Collision or body damage", price: 5000, time: "Urgent" },
+  { id: "Engine Issue", icon: Wrench, label: "Engine Issue", desc: "Diagnostic & mechanical fix", price: 3000, time: "2-4 hrs" },
+  { id: "Flat Tyre", icon: Car, label: "Flat Tyre", desc: "Patch or replace", price: 1000, time: "30 mins" },
+  { id: "Battery Problem", icon: Battery, label: "Battery Problem", desc: "Jumpstart or replace", price: 800, time: "20 mins" },
+  { id: "Brake Problem", icon: Car, label: "Brake Problem", desc: "Brake pads or fluid", price: 2500, time: "45 mins" },
+  { id: "Roadside Assistance", icon: Navigation, label: "Roadside Assistance", desc: "Towing or general help", price: 2000, time: "1 hr" },
+  { id: "General Service", icon: ClipboardCheck, label: "General Service", desc: "Oil change and inspection", price: 1500, time: "1 hr" },
+  { id: "Other", icon: Home, label: "Other", desc: "Miscellaneous issues", price: 2000, time: "Flexible" }
 ];
 
-const BookMechanicPage = () => {
+const RequestMechanicPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
   const vehicleId = searchParams.get("vehicleId");
   const bookingId = searchParams.get("bookingId");
-  
+  const source = searchParams.get("source"); // customer or seller
+
   const [step, setStep] = useState(1);
-  
+
+  // Prevent mechanics from accessing the request page
+  useEffect(() => {
+    const role = localStorage.getItem("userRole");
+    if (role === "mechanic") {
+      navigate("/mechanic/dashboard");
+    }
+  }, [navigate]);
+
   const [formData, setFormData] = useState({
     serviceType: "",
     vehicleModel: "",
@@ -46,7 +55,7 @@ const BookMechanicPage = () => {
     contactName: "",
     contactPhone: ""
   });
-  
+
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
@@ -67,7 +76,7 @@ const BookMechanicPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    
+
     if (!formData.serviceType || !formData.location || !formData.city || !formData.requestedDate || !formData.requestedTime || !formData.description || !formData.contactName || !formData.contactPhone) {
       setError("Please fill in all required fields.");
       return;
@@ -76,9 +85,9 @@ const BookMechanicPage = () => {
     try {
       setLoading(true);
       const token = localStorage.getItem("token");
-      
+
       const dateTime = new Date(`${formData.requestedDate}T${formData.requestedTime}`);
-      
+
       const finalDescription = `
 Vehicle Model: ${formData.vehicleModel || 'Not provided'}
 Emergency Status: ${formData.isEmergency ? 'YES - High Priority' : 'Normal'}
@@ -87,29 +96,26 @@ Photos Uploaded: ${formData.uploadedPhotos ? 'Yes' : 'No'}
 Issue Details:
 ${formData.description}
       `.trim();
-      
+
       const payload = {
-        serviceType: formData.serviceType,
-        location: formData.location,
-        city: formData.city,
-        requestedDate: dateTime.toISOString(),
-        preferredTime: formData.requestedTime,
-        description: finalDescription,
+        vehicleId: vehicleId,
+        bookingId: bookingId,
+        issueType: formData.serviceType,
+        problemDescription: finalDescription,
+        location: `${formData.location}, ${formData.city}`,
         isEmergency: formData.isEmergency,
-        contactName: formData.contactName,
         contactPhone: formData.contactPhone
       };
-      
-      if (vehicleId) payload.vehicle = vehicleId;
-      if (bookingId) payload.booking = bookingId;
 
-      await axios.post(`${API}/api/mechanics`, payload, {
+      const endpoint = source === "seller" ? `${API}/api/mechanics/seller` : `${API}/api/mechanics`;
+
+      await axios.post(endpoint, payload, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      
+
       setSuccess(true);
-      setTimeout(() => navigate("/profile"), 3500);
-      
+      setTimeout(() => navigate(source === "seller" ? "/seller/bookings" : "/profile"), 3500);
+
     } catch (err) {
       setError(err.response?.data?.msg || "Something went wrong. Please try again.");
     } finally {
@@ -118,7 +124,7 @@ ${formData.description}
   };
 
   const getActiveService = () => SERVICE_TYPES.find(s => s.id === formData.serviceType);
-  
+
   const calculateTotal = () => {
     const service = getActiveService();
     if (!service) return 0;
@@ -162,11 +168,11 @@ ${formData.description}
     <div className="min-h-screen bg-slate-50 dark:bg-[#080808] font-body relative overflow-x-hidden text-slate-900 dark:text-slate-100 pb-24">
       {/* Subtle Luxury Glows */}
       <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full bg-blue-500/5 dark:bg-blue-600/5 blur-[120px] pointer-events-none mix-blend-multiply dark:mix-blend-screen" />
-      
+
       <Navbar variant="dark" />
 
-      <main className="max-w-[1300px] mx-auto px-4 md:px-8 pt-32 relative z-10 flex flex-col lg:flex-row gap-10 xl:gap-16">
-        
+      <main className="max-w-[1300px] mx-auto px-4 md:px-8 pt-12 relative z-10 flex flex-col lg:flex-row gap-10 xl:gap-16">
+
         {/* Left Side: Booking Flow */}
         <div className="flex-1 w-full lg:max-w-[750px]">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
@@ -176,12 +182,12 @@ ${formData.description}
               </div>
               Back
             </button>
-            
+
             <h1 className="text-4xl md:text-5xl font-black font-heading tracking-tight mb-4 text-slate-900 dark:text-white">
               Book a <span className="bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400 bg-clip-text text-transparent">Mechanic</span>
             </h1>
             <p className="text-lg text-slate-500 dark:text-slate-400">Professional roadside assistance and premium vehicle servicing.</p>
-            
+
             {/* Minimal Animated Step Indicator */}
             <div className="mt-10 flex items-center gap-4">
               {[
@@ -221,19 +227,17 @@ ${formData.description}
                   <h3 className="text-xl font-bold font-heading text-slate-900 dark:text-white mb-6">Select Service</h3>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {SERVICE_TYPES.map((type) => (
-                      <div 
-                        key={type.id} 
+                      <div
+                        key={type.id}
                         onClick={() => setFormData({ ...formData, serviceType: type.id })}
-                        className={`group cursor-pointer rounded-2xl p-5 transition-all duration-300 border-2 relative overflow-hidden ${
-                          formData.serviceType === type.id 
-                            ? 'border-blue-600 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/10 shadow-lg shadow-blue-500/10' 
+                        className={`group cursor-pointer rounded-2xl p-5 transition-all duration-300 border-2 relative overflow-hidden ${formData.serviceType === type.id
+                            ? 'border-blue-600 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-900/10 shadow-lg shadow-blue-500/10'
                             : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-transparent'
-                        }`}
+                          }`}
                       >
                         {formData.serviceType === type.id && <div className="absolute top-4 right-4 text-blue-600 dark:text-blue-400"><CheckCircle2 size={20} /></div>}
-                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors ${
-                          formData.serviceType === type.id ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'
-                        }`}>
+                        <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 transition-colors ${formData.serviceType === type.id ? 'bg-blue-600 text-white shadow-md' : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 group-hover:text-slate-900 dark:group-hover:text-white'
+                          }`}>
                           <type.icon size={22} strokeWidth={2} />
                         </div>
                         <h4 className={`font-bold text-lg mb-1 ${formData.serviceType === type.id ? 'text-slate-900 dark:text-white' : 'text-slate-800 dark:text-white'}`}>
@@ -260,9 +264,9 @@ ${formData.description}
               {step === 2 && (
                 <motion.div key="step2" variants={stepVariants} initial="hidden" animate="visible" exit="exit" className="space-y-8">
                   <h3 className="text-xl font-bold font-heading text-slate-900 dark:text-white mb-2">Service Details</h3>
-                  
+
                   {/* Emergency Toggle */}
-                  <div className={`p-5 rounded-2xl border-2 transition-colors flex items-center justify-between cursor-pointer ${formData.isEmergency ? 'border-red-500 bg-red-50 dark:bg-red-900/10 shadow-lg shadow-red-500/10' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'}`} onClick={() => setFormData({...formData, isEmergency: !formData.isEmergency})}>
+                  <div className={`p-5 rounded-2xl border-2 transition-colors flex items-center justify-between cursor-pointer ${formData.isEmergency ? 'border-red-500 bg-red-50 dark:bg-red-900/10 shadow-lg shadow-red-500/10' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300'}`} onClick={() => setFormData({ ...formData, isEmergency: !formData.isEmergency })}>
                     <div className="flex items-center gap-4">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center ${formData.isEmergency ? 'bg-red-500 text-white' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
                         <AlertTriangle size={24} />
@@ -341,12 +345,12 @@ ${formData.description}
                   </div>
 
                   {/* Mock Photo Upload */}
-                  <div onClick={() => setFormData({...formData, uploadedPhotos: !formData.uploadedPhotos})} className={`cursor-pointer border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors ${formData.uploadedPhotos ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/10' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}>
-                     <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${formData.uploadedPhotos ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                       {formData.uploadedPhotos ? <CheckCircle2 size={24} /> : <Camera size={24} />}
-                     </div>
-                     <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">{formData.uploadedPhotos ? 'Photos Uploaded Successfully' : 'Upload Issue Photos'}</p>
-                     <p className="text-xs text-slate-500">Helps our mechanic prepare the right tools.</p>
+                  <div onClick={() => setFormData({ ...formData, uploadedPhotos: !formData.uploadedPhotos })} className={`cursor-pointer border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors ${formData.uploadedPhotos ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/10' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}>
+                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${formData.uploadedPhotos ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                      {formData.uploadedPhotos ? <CheckCircle2 size={24} /> : <Camera size={24} />}
+                    </div>
+                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">{formData.uploadedPhotos ? 'Photos Uploaded Successfully' : 'Upload Issue Photos'}</p>
+                    <p className="text-xs text-slate-500">Helps our mechanic prepare the right tools.</p>
                   </div>
 
                   <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
@@ -364,98 +368,98 @@ ${formData.description}
         {/* Right Side: Premium Summary Panel */}
         <div className="w-full lg:w-[380px] xl:w-[420px] shrink-0 lg:sticky lg:top-32 mb-10">
           <div className="bg-white/90 dark:bg-[#111111]/90 backdrop-blur-2xl rounded-[2rem] p-6 lg:p-8 border border-slate-200/50 dark:border-slate-800/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] relative overflow-hidden">
-             
-             {/* Decorative glow */}
-             <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none" />
 
-             <h3 className="text-lg font-bold font-heading mb-6 text-slate-900 dark:text-white flex items-center justify-between uppercase tracking-wider text-[13px]">
-               Service Overview
-             </h3>
+            {/* Decorative glow */}
+            <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none" />
 
-             {/* Assigned Mechanic Preview (Mock) */}
-             <div className="bg-slate-50 dark:bg-[#161616] rounded-2xl p-5 mb-8 border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-               <div className="absolute top-0 right-0 p-3 flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-bl-xl uppercase tracking-widest">
-                 <Shield size={10} /> Certified
-               </div>
-               <div className="flex items-center gap-4">
-                 <div className="w-14 h-14 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden border-2 border-white dark:border-[#161616] shadow-sm">
-                    <img src="https://i.pravatar.cc/150?u=mechanic" alt="Mechanic" className="w-full h-full object-cover" />
-                 </div>
-                 <div>
-                   <h4 className="font-bold text-slate-900 dark:text-white text-base">Searching Local Hub...</h4>
-                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Matching premium expert</p>
-                   <div className="flex items-center gap-1 mt-1.5 text-xs font-bold text-amber-500">
-                     <Star size={12} fill="currentColor" />
-                     <Star size={12} fill="currentColor" />
-                     <Star size={12} fill="currentColor" />
-                     <Star size={12} fill="currentColor" />
-                     <Star size={12} fill="currentColor" />
-                     <span className="text-slate-400 ml-1 font-medium">(Top Rated)</span>
-                   </div>
-                 </div>
-               </div>
-             </div>
-             
-             {formData.serviceType ? (
-               <div className="space-y-6">
-                 <div>
-                   <h4 className="font-bold text-lg text-slate-900 dark:text-white">{getActiveService()?.label}</h4>
-                   <p className="text-sm text-slate-500 dark:text-slate-400">{getActiveService()?.desc}</p>
-                 </div>
-                 
-                 {/* Itemized Estimate */}
-                 <div className="space-y-3 pt-5 border-t border-slate-100 dark:border-slate-800">
-                    <div className="flex justify-between items-center text-sm font-medium text-slate-600 dark:text-slate-300">
-                       <span>Service Fee</span>
-                       <span className="text-slate-900 dark:text-white">NPR {getActiveService()?.price.toLocaleString()}</span>
-                    </div>
-                    <div className="flex justify-between items-center text-sm font-medium text-slate-600 dark:text-slate-300">
-                       <span>Travel Fee</span>
-                       <span className="text-slate-900 dark:text-white">NPR 500</span>
-                    </div>
-                    <AnimatePresence>
-                      {formData.isEmergency && (
-                        <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex justify-between items-center text-sm font-bold text-red-600 dark:text-red-400">
-                           <span>Emergency Surcharge</span>
-                           <span>NPR 1,500</span>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                    <div className="flex justify-between items-center text-sm font-medium text-slate-500 dark:text-slate-400 pt-1">
-                       <span>Tax (13%)</span>
-                       <span>NPR {Math.round((getActiveService()?.price + 500 + (formData.isEmergency ? 1500 : 0)) * 0.13).toLocaleString()}</span>
-                    </div>
-                    
-                    <div className="flex justify-between items-end pt-5 mt-2 border-t border-slate-100 dark:border-slate-800">
-                       <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Est. Total</span>
-                       <span className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">
-                         NPR {Math.round(calculateTotal()).toLocaleString()}
-                       </span>
-                    </div>
-                 </div>
-               </div>
-             ) : (
-               <div className="py-10 text-center flex flex-col items-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                 <Wrench size={32} className="text-slate-300 dark:text-slate-700 mb-3" />
-                 <p className="text-sm font-bold text-slate-400">Select a service to see<br/>estimated costs.</p>
-               </div>
-             )}
+            <h3 className="text-lg font-bold font-heading mb-6 text-slate-900 dark:text-white flex items-center justify-between uppercase tracking-wider text-[13px]">
+              Service Overview
+            </h3>
 
-             {/* Trust Indicators */}
-             <div className="grid grid-cols-2 gap-y-4 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800/50">
-               <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-                 <Clock className="text-blue-500" size={16} /> 24/7 Support
-               </div>
-               <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-                 <Shield className="text-emerald-500" size={16} /> Verified Experts
-               </div>
-               <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-                 <Navigation className="text-blue-500" size={16} /> Live Tracking
-               </div>
-               <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-                 <Lock className="text-emerald-500" size={16} /> Secure Payment
-               </div>
-             </div>
+            {/* Assigned Mechanic Preview (Mock) */}
+            <div className="bg-slate-50 dark:bg-[#161616] rounded-2xl p-5 mb-8 border border-slate-100 dark:border-slate-800 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-3 flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-bl-xl uppercase tracking-widest">
+                <Shield size={10} /> Certified
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden border-2 border-white dark:border-[#161616] shadow-sm">
+                  <img src="https://i.pravatar.cc/150?u=mechanic" alt="Mechanic" className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h4 className="font-bold text-slate-900 dark:text-white text-base">Searching Local Hub...</h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Matching premium expert</p>
+                  <div className="flex items-center gap-1 mt-1.5 text-xs font-bold text-amber-500">
+                    <Star size={12} fill="currentColor" />
+                    <Star size={12} fill="currentColor" />
+                    <Star size={12} fill="currentColor" />
+                    <Star size={12} fill="currentColor" />
+                    <Star size={12} fill="currentColor" />
+                    <span className="text-slate-400 ml-1 font-medium">(Top Rated)</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {formData.serviceType ? (
+              <div className="space-y-6">
+                <div>
+                  <h4 className="font-bold text-lg text-slate-900 dark:text-white">{getActiveService()?.label}</h4>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">{getActiveService()?.desc}</p>
+                </div>
+
+                {/* Itemized Estimate */}
+                <div className="space-y-3 pt-5 border-t border-slate-100 dark:border-slate-800">
+                  <div className="flex justify-between items-center text-sm font-medium text-slate-600 dark:text-slate-300">
+                    <span>Service Fee</span>
+                    <span className="text-slate-900 dark:text-white">NPR {getActiveService()?.price.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center text-sm font-medium text-slate-600 dark:text-slate-300">
+                    <span>Travel Fee</span>
+                    <span className="text-slate-900 dark:text-white">NPR 500</span>
+                  </div>
+                  <AnimatePresence>
+                    {formData.isEmergency && (
+                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex justify-between items-center text-sm font-bold text-red-600 dark:text-red-400">
+                        <span>Emergency Surcharge</span>
+                        <span>NPR 1,500</span>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                  <div className="flex justify-between items-center text-sm font-medium text-slate-500 dark:text-slate-400 pt-1">
+                    <span>Tax (13%)</span>
+                    <span>NPR {Math.round((getActiveService()?.price + 500 + (formData.isEmergency ? 1500 : 0)) * 0.13).toLocaleString()}</span>
+                  </div>
+
+                  <div className="flex justify-between items-end pt-5 mt-2 border-t border-slate-100 dark:border-slate-800">
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Est. Total</span>
+                    <span className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">
+                      NPR {Math.round(calculateTotal()).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="py-10 text-center flex flex-col items-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
+                <Wrench size={32} className="text-slate-300 dark:text-slate-700 mb-3" />
+                <p className="text-sm font-bold text-slate-400">Select a service to see<br />estimated costs.</p>
+              </div>
+            )}
+
+            {/* Trust Indicators */}
+            <div className="grid grid-cols-2 gap-y-4 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800/50">
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
+                <Clock className="text-blue-500" size={16} /> 24/7 Support
+              </div>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
+                <Shield className="text-emerald-500" size={16} /> Verified Experts
+              </div>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
+                <Navigation className="text-blue-500" size={16} /> Live Tracking
+              </div>
+              <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
+                <Lock className="text-emerald-500" size={16} /> Secure Payment
+              </div>
+            </div>
           </div>
         </div>
       </main>
@@ -463,4 +467,4 @@ ${formData.description}
   );
 };
 
-export default BookMechanicPage;
+export default RequestMechanicPage;

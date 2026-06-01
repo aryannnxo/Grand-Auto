@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { 
-  ArrowRight, 
-  Smartphone, 
-  ShieldCheck, 
-  Star, 
+import {
+  ArrowRight,
+  Smartphone,
+  ShieldCheck,
+  Star,
   Award,
   ChevronRight,
   Facebook,
@@ -24,8 +24,8 @@ import {
 // Reusable Footer Link Component
 const FooterLink = ({ to, children }) => (
   <li>
-    <Link 
-      to={to} 
+    <Link
+      to={to}
       className="text-slate-400 hover:text-white hover:text-transparent hover:bg-clip-text hover:bg-gradient-to-r hover:from-primary-400 hover:to-blue-400 transition-all duration-300 transform hover:-translate-y-0.5 flex items-center group text-[13px] font-medium"
     >
       <ChevronRight size={12} className="opacity-0 -ml-4 group-hover:opacity-100 group-hover:ml-0 transition-all duration-300 mr-2 text-primary-500" />
@@ -38,11 +38,11 @@ const AppStoreButton = ({ store }) => (
   <button className="flex items-center gap-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl px-4 py-2 transition-all group w-full sm:w-auto">
     {store === 'apple' ? (
       <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M17.05 20.28c-.98.95-2.05 1.78-3.19 1.76-1.14-.02-1.5-.72-2.82-.72-1.32 0-1.74.7-2.82.74-1.14.04-2.2-.82-3.19-1.78-2.02-1.95-3.56-5.5-3.56-8.82 0-3.32 2.1-5.07 4.1-5.07 1.15 0 2.22.75 2.82.75.6 0 1.9-.9 3.25-.76 1.45.15 2.6.9 3.2 1.95-2.9 1.7-2.45 5.5.4 6.7-.6 1.55-1.4 3.1-2.4 4.15zM12.03 7.25c-.02-2.23 1.84-4.22 4.02-4.22.25 2.7-2.1 4.5-4.02 4.22z"/>
+        <path d="M17.05 20.28c-.98.95-2.05 1.78-3.19 1.76-1.14-.02-1.5-.72-2.82-.72-1.32 0-1.74.7-2.82.74-1.14.04-2.2-.82-3.19-1.78-2.02-1.95-3.56-5.5-3.56-8.82 0-3.32 2.1-5.07 4.1-5.07 1.15 0 2.22.75 2.82.75.6 0 1.9-.9 3.25-.76 1.45.15 2.6.9 3.2 1.95-2.9 1.7-2.45 5.5.4 6.7-.6 1.55-1.4 3.1-2.4 4.15zM12.03 7.25c-.02-2.23 1.84-4.22 4.02-4.22.25 2.7-2.1 4.5-4.02 4.22z" />
       </svg>
     ) : (
       <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="currentColor">
-        <path d="M3 20.5V3.5C3 2.91 3.34 2.39 3.84 2.15L13.69 12L3.84 21.85C3.34 21.61 3 21.09 3 20.5ZM14.4 12.71L17.04 15.35L5.05 22.21L14.4 12.71ZM14.4 11.29L5.05 1.79004L17.04 8.65004L14.4 11.29ZM15.11 12L18.06 9.05L21.43 11C21.78 11.2 22 11.58 22 12C22 12.42 21.78 12.8 21.43 13L18.06 14.95L15.11 12Z"/>
+        <path d="M3 20.5V3.5C3 2.91 3.34 2.39 3.84 2.15L13.69 12L3.84 21.85C3.34 21.61 3 21.09 3 20.5ZM14.4 12.71L17.04 15.35L5.05 22.21L14.4 12.71ZM14.4 11.29L5.05 1.79004L17.04 8.65004L14.4 11.29ZM15.11 12L18.06 9.05L21.43 11C21.78 11.2 22 11.58 22 12C22 12.42 21.78 12.8 21.43 13L18.06 14.95L15.11 12Z" />
       </svg>
     )}
     <div className="text-left">
@@ -108,25 +108,25 @@ const Footer = () => {
     <footer className="bg-[#03060d] text-slate-300 relative overflow-hidden pt-20">
       {/* Subtle Animated Gradient Background */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <motion.div 
-          animate={{ opacity: [0.05, 0.1, 0.05], scale: [1, 1.1, 1] }} 
+        <motion.div
+          animate={{ opacity: [0.05, 0.1, 0.05], scale: [1, 1.1, 1] }}
           transition={{ duration: 10, repeat: Infinity }}
           className="absolute top-[-10%] right-[10%] w-[40%] h-[40%] rounded-full bg-primary-600 blur-[120px]"
         />
-        <motion.div 
-          animate={{ opacity: [0.05, 0.08, 0.05], scale: [1, 1.2, 1] }} 
+        <motion.div
+          animate={{ opacity: [0.05, 0.08, 0.05], scale: [1, 1.2, 1] }}
           transition={{ duration: 15, repeat: Infinity, delay: 2 }}
           className="absolute bottom-[-10%] left-[10%] w-[40%] h-[40%] rounded-full bg-blue-600 blur-[120px]"
         />
       </div>
 
       <div className="max-w-[1400px] mx-auto px-6 relative z-10">
-        
+
         {/* 1. Top Section (Cards – 3 columns) */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
-          
+
           {/* Card 1 – Booking */}
-          <motion.div 
+          <motion.div
             whileHover={{ y: -5 }}
             className="glass-panel p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl group transition-all duration-500 hover:border-primary-500/30"
           >
@@ -147,7 +147,7 @@ const Footer = () => {
           </motion.div>
 
           {/* Card 2 – Offers */}
-          <motion.div 
+          <motion.div
             whileHover={{ y: -5 }}
             className="glass-panel p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl group transition-all duration-500 hover:border-blue-500/30"
           >
@@ -159,13 +159,13 @@ const Footer = () => {
             <form onSubmit={handleSubscribe} className="relative overflow-hidden rounded-xl">
                <AnimatePresence mode="wait">
                  {!subscribed ? (
-                   <motion.div 
+                   <motion.div
                      key="button"
                      initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                      className="flex gap-2"
                    >
-                     <input 
-                        type="email" required placeholder="your@email.com" 
+                     <input
+                        type="email" required placeholder="your@email.com"
                         value={email} onChange={(e) => setEmail(e.target.value)}
                         className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500/50 transition-all text-xs font-bold w-full"
                      />
@@ -174,7 +174,7 @@ const Footer = () => {
                      </button>
                    </motion.div>
                  ) : (
-                   <motion.div 
+                   <motion.div
                      key="success"
                      initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }}
                      className="flex items-center gap-2 text-emerald-400 font-black text-xs uppercase tracking-widest py-3"
@@ -187,7 +187,7 @@ const Footer = () => {
           </motion.div>
 
           {/* Card 3 – Mobile App */}
-          <motion.div 
+          <motion.div
             whileHover={{ y: -5 }}
             className="glass-panel p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl group transition-all duration-500 hover:border-emerald-500/30"
           >
@@ -278,7 +278,7 @@ const Footer = () => {
                 </a>
               ))}
             </div>
-            
+
             <div className="flex items-center gap-6 pl-6 border-l border-white/10 hidden sm:flex">
                 {['Sitemap', 'Legal', 'Cookies', 'Contact'].map(item => (
                   <a key={item} href="#" className="text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-white transition-colors">

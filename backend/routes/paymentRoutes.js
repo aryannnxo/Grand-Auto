@@ -54,7 +54,7 @@ router.post("/esewa/initiate", protect, async (req, res) => {
     const signature = generateEsewaSignature(totalAmount, transactionUuid, ESEWA_PRODUCT_CODE);
 
     // Update booking to pending payment and store the expected transaction UUID
-    booking.paymentStatus = "Pending";
+    booking.paymentStatus = "pending";
     booking.paymentMethod = "eSewa";
     booking.transactionId = transactionUuid;
     await booking.save();
@@ -132,8 +132,8 @@ router.get("/esewa/success", async (req, res) => {
     }
 
     if (decodedData.status === "COMPLETE") {
-      booking.paymentStatus = "Paid";
-      booking.status = "Confirmed"; // Booking Approved
+      booking.paymentStatus = "paid";
+      booking.status = "confirmed"; // Booking Approved
       booking.amountPaid = booking.totalPrice; 
       booking.remainingAmount = 0;
       booking.transactionId = transaction_code; 
@@ -163,7 +163,7 @@ router.get("/esewa/success", async (req, res) => {
 
       return res.redirect(`http://localhost:5173/payment/success?booking=${booking._id}&tx=${transaction_code}`);
     } else {
-      booking.paymentStatus = "Failed";
+      booking.paymentStatus = "failed";
       await booking.save();
       return res.redirect("http://localhost:5173/payment/failure?error=payment_failed");
     }
@@ -191,8 +191,8 @@ router.post("/esewa/mock-success", protect, async (req, res) => {
     const booking = await Booking.findById(bookingId).populate("vehicle");
     if (!booking) return res.status(404).json({ msg: "Booking not found" });
 
-    booking.paymentStatus = "Paid";
-    booking.status = "Confirmed"; // Booking Approved
+    booking.paymentStatus = "paid";
+    booking.status = "confirmed"; // Booking Approved
     booking.amountPaid = booking.totalPrice; 
     booking.remainingAmount = 0;
     booking.transactionId = `MOCK-ESEWA-${Date.now()}`;

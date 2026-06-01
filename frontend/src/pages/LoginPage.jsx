@@ -38,6 +38,8 @@ const LoginPage = () => {
 
       if (user?.role === "admin") {
         navigate("/admin/dashboard");
+      } else if (user?.role === "mechanic") {
+        navigate("/mechanic/dashboard");
       } else {
         navigate("/");
       }

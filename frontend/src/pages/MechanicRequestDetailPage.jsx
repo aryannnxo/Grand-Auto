@@ -79,8 +79,15 @@ const MechanicRequestDetailPage = () => {
   }
 
   const getStatusIndex = (status) => {
-    const statuses = ['pending', 'approved', 'assigned', 'in-progress', 'completed'];
-    return statuses.indexOf(status);
+    const statuses = ['pending-admin-review', 'approved', 'assigned', 'accepted-by-mechanic', 'in-progress', 'fixed', 'completed'];
+    const idx = statuses.indexOf(status);
+    // simplify mapping for the UI step tracker (which has 5 steps)
+    if (idx === -1) return -1;
+    if (idx <= 1) return 1; // Submitted/Approved
+    if (idx === 2) return 2; // Assigned
+    if (idx === 3 || idx === 4) return 3; // In Progress
+    if (idx >= 5) return 4; // Completed
+    return 0;
   };
 
   const currentStep = getStatusIndex(request.status);
@@ -114,7 +121,7 @@ const MechanicRequestDetailPage = () => {
             {request.priority === 'emergency' && (
               <Badge className="bg-red-500 text-white border-red-600 font-bold px-3 py-1 animate-pulse">EMERGENCY</Badge>
             )}
-            <Badge className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold px-3 py-1 uppercase">{request.status}</Badge>
+            <Badge className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold px-3 py-1 uppercase">{request.status.replace(/-/g, ' ')}</Badge>
           </div>
         </div>
 
@@ -187,7 +194,7 @@ const MechanicRequestDetailPage = () => {
                  <div>
                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Service Type</p>
                    <p className="font-medium text-slate-900 dark:text-white flex items-center gap-2">
-                     <Wrench size={16} className="text-blue-500" /> {request.serviceType}
+                     <Wrench size={16} className="text-blue-500" /> {request.issueType || request.serviceType}
                    </p>
                  </div>
                  {request.vehicle && (
@@ -206,16 +213,15 @@ const MechanicRequestDetailPage = () => {
                  <div>
                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">Preferred Time</p>
                    <p className="font-medium text-slate-900 dark:text-white flex items-center gap-2">
-                     <CalendarDays size={16} className="text-blue-500" /> {new Date(request.requestedDate).toLocaleDateString()}
+                     <CalendarDays size={16} className="text-blue-500" /> {new Date(request.createdAt || request.requestedDate).toLocaleDateString()}
                    </p>
-                   {request.preferredTime && <p className="text-sm text-slate-500 ml-6">{request.preferredTime}</p>}
                  </div>
                </div>
 
                <div>
                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Issue Description</p>
                  <div className="bg-slate-50 dark:bg-slate-800/30 p-4 rounded-xl border border-slate-100 dark:border-slate-800/50 text-slate-700 dark:text-slate-300 text-sm whitespace-pre-wrap">
-                   {request.description}
+                   {request.problemDescription || request.description}
                  </div>
                </div>
             </div>
@@ -252,21 +258,21 @@ const MechanicRequestDetailPage = () => {
                  <User size={16} className="text-blue-400" /> Assigned Mechanic
                </h3>
                
-               {request.assignedMechanicName ? (
+               {request.assignedMechanic || request.assignedMechanicName ? (
                  <div className="space-y-4">
                    <div>
                      <p className="text-xs text-slate-400 uppercase tracking-widest">Name</p>
-                     <p className="font-bold text-white text-lg">{request.assignedMechanicName}</p>
+                     <p className="font-bold text-white text-lg">{request.assignedMechanic?.name || request.assignedMechanicName}</p>
                    </div>
-                   {request.assignedMechanicPhone && (
+                   {(request.assignedMechanic?.phone || request.assignedMechanicPhone) && (
                      <div>
                        <p className="text-xs text-slate-400 uppercase tracking-widest">Contact</p>
-                       <p className="font-medium text-white flex items-center gap-2"><Phone size={14} className="text-blue-400"/> {request.assignedMechanicPhone}</p>
+                       <p className="font-medium text-white flex items-center gap-2"><Phone size={14} className="text-blue-400"/> {request.assignedMechanic?.phone || request.assignedMechanicPhone}</p>
                      </div>
                    )}
-                   {request.assignedMechanicEmail && (
+                   {(request.assignedMechanic?.email || request.assignedMechanicEmail) && (
                      <div>
-                       <p className="font-medium text-white flex items-center gap-2"><Mail size={14} className="text-blue-400"/> {request.assignedMechanicEmail}</p>
+                       <p className="font-medium text-white flex items-center gap-2"><Mail size={14} className="text-blue-400"/> {request.assignedMechanic?.email || request.assignedMechanicEmail}</p>
                      </div>
                    )}
                  </div>
@@ -302,7 +308,7 @@ const MechanicRequestDetailPage = () => {
             )}
 
             {/* Cancel Action */}
-            {(request.status === 'pending' || request.status === 'approved') && (
+            {(request.status === 'pending-admin-review' || request.status === 'approved' || request.status === 'pending') && (
               <button 
                 onClick={handleCancel}
                 className="w-full py-4 bg-white dark:bg-slate-900 border-2 border-red-100 dark:border-red-900/30 hover:border-red-500 dark:hover:border-red-500 text-red-600 dark:text-red-400 font-bold rounded-2xl text-xs uppercase tracking-widest transition-all shadow-sm"

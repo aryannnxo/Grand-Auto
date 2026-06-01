@@ -6,7 +6,7 @@ const Notification = require("../models/Notification");
 const sendEmail = require("../utils/sendEmail");
 const { protect } = require("../middleware/authMiddleware");
 
-// ✅ Check vehicle availability
+// ✅ Check vehicle availability (POST body)
 router.post("/check-availability", async (req, res) => {
   try {
     const { vehicle, startDate, endDate } = req.body;
@@ -48,6 +48,106 @@ router.post("/check-availability", async (req, res) => {
     res.status(500).json({ msg: "Check availability error: " + err.message });
   }
 });
+
+// ✅ GET availability status for a vehicle (used by VehicleDetailsPage)
+// Optionally accepts ?startDate=&endDate= for date-specific checks
+// Optionally accepts Authorization header to check if logged-in user has a booking
+const BLOCKING_STATUSES = ["pending-owner-approval", "approved-awaiting-payment", "confirmed", "confirmed-awaiting-cash-payment", "active"];
+const jwt = require("jsonwebtoken");
+
+router.get("/vehicle/:vehicleId/availability", async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+    const { startDate, endDate } = req.query;
+    let userId = null;
+
+    // 1. Try to extract user from token (optional auth)
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      try {
+        const token = authHeader.split(" ")[1];
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        userId = decoded.user?.id || decoded.id; // handle different token structures just in case
+      } catch (tokenErr) {
+        // Ignore token errors, treat as guest
+      }
+    }
+
+    // 2. Check for user's specific booking if logged in
+    let userBooking = null;
+    if (userId) {
+      userBooking = await Booking.findOne({
+        vehicle: vehicleId,
+        user: userId,
+      })
+      .sort({ createdAt: -1 })
+      .select("status paymentStatus startDate endDate totalPrice");
+    }
+
+    let conflictQuery = {
+      vehicle: vehicleId,
+      status: { $in: BLOCKING_STATUSES }
+    };
+
+    // If dates provided, check for overlap; otherwise just check if any active booking exists
+    if (startDate && endDate) {
+      const reqStart = new Date(startDate);
+      const reqEnd = new Date(endDate);
+      if (!isNaN(reqStart) && !isNaN(reqEnd)) {
+        conflictQuery.startDate = { $lte: reqEnd };
+        conflictQuery.endDate = { $gte: reqStart };
+      }
+    }
+
+    const activeBooking = await Booking.findOne(conflictQuery)
+      .populate("user", "name")
+      .select("status startDate endDate paymentStatus");
+
+    if (activeBooking) {
+      // If the active booking happens to belong to the logged in user, don't flag as generally unavailable?
+      // Actually, if the logged-in user has the booking, it IS unavailable for NEW bookings.
+      // But we will return userBooking so the frontend can handle it.
+      return res.json({
+        isAvailable: false,
+        activeBooking: {
+          status: activeBooking.status,
+          startDate: activeBooking.startDate,
+          endDate: activeBooking.endDate
+        },
+        userBooking
+      });
+    }
+
+    res.json({ isAvailable: true, userBooking });
+  } catch (err) {
+    console.error("Vehicle availability GET error:", err);
+    res.status(500).json({ msg: "Server error checking availability" });
+  }
+});
+
+// ✅ GET blocked date ranges for a vehicle (for calendar pickers)
+router.get("/vehicle/:vehicleId/blocked-dates", async (req, res) => {
+  try {
+    const { vehicleId } = req.params;
+
+    const bookings = await Booking.find({
+      vehicle: vehicleId,
+      status: { $in: BLOCKING_STATUSES }
+    }).select("startDate endDate status");
+
+    const blockedDates = bookings.map(b => ({
+      startDate: b.startDate,
+      endDate: b.endDate,
+      status: b.status
+    }));
+
+    res.json({ blockedDates });
+  } catch (err) {
+    console.error("Blocked dates error:", err);
+    res.status(500).json({ msg: "Server error fetching blocked dates" });
+  }
+});
+
 
 // ✅ Create a new booking
 router.post("/", protect, async (req, res) => {
@@ -329,7 +429,12 @@ router.patch("/:id/approve", protect, async (req, res) => {
       return res.status(400).json({ msg: "Only pending bookings can be approved." });
     }
 
-    booking.status = "approved-awaiting-payment";
+    if (booking.paymentStatus === "paid") {
+      booking.status = "confirmed";
+    } else {
+      booking.status = "approved-awaiting-payment";
+    }
+    
     await booking.save();
 
     // Create Notification
@@ -391,6 +496,49 @@ router.patch("/:id/reject", protect, async (req, res) => {
     res.json({ msg: "Booking rejected successfully.", booking });
   } catch (err) {
     console.error("Reject booking error:", err);
+    res.status(500).json({ msg: "Server error: " + err.message });
+  }
+});
+
+// ✅ Renter or Owner: Complete a booking
+router.patch("/:id/complete", protect, async (req, res) => {
+  try {
+    const booking = await Booking.findById(req.params.id).populate("vehicle");
+    if (!booking) {
+      return res.status(404).json({ msg: "Booking not found" });
+    }
+
+    // Verify authorized user: admin, vehicle owner, or the renter
+    const isOwner = booking.vehicle?.owner?.toString() === req.user._id.toString();
+    const isAdmin = req.user.role === "admin";
+    const isRenter = booking.user?.toString() === req.user._id.toString();
+    if (!isOwner && !isAdmin && !isRenter) {
+      return res.status(403).json({ msg: "Not authorized. You cannot complete this booking." });
+    }
+
+    if (!["confirmed", "active"].includes(booking.status)) {
+      return res.status(400).json({ msg: "Only confirmed or active bookings can be completed." });
+    }
+
+    booking.status = "completed";
+    await booking.save();
+
+    // Create Notification
+    try {
+      const vehicleName = booking.vehicle ? `${booking.vehicle.brand} ${booking.vehicle.model}` : "Vehicle";
+      await Notification.create({
+        user: booking.user,
+        title: "Trip Completed",
+        message: `Your trip for ${vehicleName} has been marked as completed. You can now leave a review on the vehicle's page!`,
+        type: "info"
+      });
+    } catch (notifErr) {
+      console.error("Failed to create completion notification:", notifErr);
+    }
+
+    res.json({ msg: "Booking marked as completed.", booking });
+  } catch (err) {
+    console.error("Complete booking error:", err);
     res.status(500).json({ msg: "Server error: " + err.message });
   }
 });

@@ -8,12 +8,13 @@ import {
   Wrench,
   TrendingUp,
   DollarSign,
-  Activity,
+  CreditCard,
   PlusCircle,
   ChevronRight,
   Clock,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Activity
 } from "lucide-react";
 
 const API = "http://localhost:5000";
@@ -22,6 +23,7 @@ const SellerDashboardPage = () => {
   const navigate = useNavigate();
   const [stats, setStats] = useState({
     totalEarnings: 0,
+    commission: 0,
     activeListings: 0,
     activeBookings: 0,
     pendingServices: 0
@@ -48,13 +50,13 @@ const SellerDashboardPage = () => {
         const bookingsRes = await axios.get(`${API}/api/bookings/owner-bookings`, config);
         const myBookings = bookingsRes.data || [];
 
-        // Calculate Stats
-        const earnings = myBookings
-          .filter(b => b.paymentStatus === "Paid")
-          .reduce((acc, curr) => acc + curr.totalPrice, 0);
+        // 3. Fetch earnings and commission for this seller
+        const commissionRes = await axios.get(`${API}/api/seller/commission`, config);
+        const { totalEarnings, commission } = commissionRes.data;
 
         setStats({
-          totalEarnings: earnings,
+          totalEarnings,
+          commission,
           activeListings: myVehicles.length,
           activeBookings: myBookings.filter(b => b.status === "Confirmed" || b.status === "In Progress").length,
           pendingServices: 0 // removed
@@ -90,6 +92,7 @@ const SellerDashboardPage = () => {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
         {[
           { label: "Total Earnings", value: `Rs. ${stats.totalEarnings.toLocaleString()}`, icon: DollarSign, trend: "+12%", color: "text-emerald-500" },
+          { label: "Commission (20%)", value: `Rs. ${stats.commission.toLocaleString()}`, icon: CreditCard, trend: "-20%", color: "text-yellow-500" },
           { label: "My Vehicles", value: stats.activeListings, icon: CarFront, trend: "Approved", color: "text-blue-500" },
           { label: "Active Rentals", value: stats.activeBookings, icon: Activity, trend: "In Progress", color: "text-purple-500" },
         ].map((stat, idx) => (

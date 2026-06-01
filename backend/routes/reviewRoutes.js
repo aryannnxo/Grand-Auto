@@ -18,7 +18,7 @@ router.post("/", protect, async (req, res) => {
     const completedBookings = await Booking.find({
       user: req.user._id,
       vehicle: vehicleId,
-      status: "Completed",
+      status: "completed",
     }).sort({ createdAt: -1 });
 
     if (!completedBookings || completedBookings.length === 0) {
@@ -87,7 +87,7 @@ router.get("/can-review/:listingId", protect, async (req, res) => {
     const completedBookings = await Booking.find({
       user: req.user._id,
       vehicle: req.params.listingId,
-      status: "Completed",
+      status: "completed",
     });
 
     if (!completedBookings || completedBookings.length === 0) {

@@ -49,12 +49,17 @@ const MyMechanicRequestsPage = () => {
   const fetchRequests = async () => {
     try {
       const token = localStorage.getItem("token");
+      const role = localStorage.getItem("userRole");
       if (!token) {
         navigate("/login");
         return;
       }
+      if (role === "mechanic") {
+        navigate("/mechanic/dashboard");
+        return;
+      }
       
-      const res = await axios.get(`${API}/api/mechanics/my-requests`, {
+      const res = await axios.get(`${API}/api/mechanics/my`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setRequests(res.data);
@@ -106,7 +111,7 @@ const MyMechanicRequestsPage = () => {
             </h1>
           </div>
           
-          <Button onClick={() => navigate('/mechanic/book')} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-2.5 shadow-lg shadow-blue-600/20">
+          <Button onClick={() => navigate('/request-mechanic')} className="bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl px-6 py-2.5 shadow-lg shadow-blue-600/20">
             Book a Mechanic
           </Button>
         </div>
@@ -123,7 +128,7 @@ const MyMechanicRequestsPage = () => {
             </div>
             <h3 className="text-2xl font-bold text-slate-800 dark:text-white mb-3 tracking-tight">No requests found</h3>
             <p className="text-slate-500 dark:text-slate-400 max-w-sm mb-8">You haven't made any requests for mechanic assistance yet.</p>
-            <Button onClick={() => navigate('/mechanic/book')} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl px-8 py-3">
+            <Button onClick={() => navigate('/request-mechanic')} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 font-bold rounded-xl px-8 py-3">
               Request Help Now
             </Button>
           </div>
@@ -152,7 +157,7 @@ const MyMechanicRequestsPage = () => {
                           {req.priority} Priority
                         </span>
                         <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                          {req.serviceType}
+                          {req.issueType || req.serviceType}
                         </span>
                       </div>
                       
@@ -171,23 +176,18 @@ const MyMechanicRequestsPage = () => {
                         <div className="flex items-center">
                           <CalendarDays size={16} className="mr-2 text-slate-400" /> 
                           <span className="font-medium text-slate-800 dark:text-slate-200">Date:</span> 
-                          <span className="ml-2">{new Date(req.requestedDate).toLocaleDateString()}</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Clock size={16} className="mr-2 text-slate-400" /> 
-                          <span className="font-medium text-slate-800 dark:text-slate-200">Time:</span> 
-                          <span className="ml-2">{req.preferredTime || 'Not specified'}</span>
+                          <span className="ml-2">{new Date(req.createdAt || req.requestedDate).toLocaleDateString()}</span>
                         </div>
                       </div>
                     </div>
                     
                     <div className="md:w-72 bg-slate-50 dark:bg-slate-900/40 rounded-2xl p-5 border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
                       <div>
-                        {req.assignedMechanicName ? (
+                        {req.assignedMechanic || req.assignedMechanicName ? (
                           <div className="mb-4">
                             <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-1">Assigned Expert</p>
-                            <p className="font-bold text-slate-900 dark:text-white text-sm">{req.assignedMechanicName}</p>
-                            {req.assignedMechanicPhone && <p className="text-xs text-slate-500 mt-1">{req.assignedMechanicPhone}</p>}
+                            <p className="font-bold text-slate-900 dark:text-white text-sm">{req.assignedMechanic?.name || req.assignedMechanicName}</p>
+                            {(req.assignedMechanic?.phone || req.assignedMechanicPhone) && <p className="text-xs text-slate-500 mt-1">{req.assignedMechanic?.phone || req.assignedMechanicPhone}</p>}
                           </div>
                         ) : (
                           <div className="mb-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-400 text-xs font-medium rounded-xl flex items-start">
@@ -205,7 +205,7 @@ const MyMechanicRequestsPage = () => {
                       </div>
 
                       <div className="flex gap-2 mt-6">
-                        {(req.status === 'pending' || req.status === 'approved') && (
+                        {(req.status === 'pending-admin-review' || req.status === 'approved' || req.status === 'pending') && (
                           <button 
                             onClick={() => handleCancel(req._id)}
                             className="flex-1 py-2.5 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 font-bold rounded-xl text-xs uppercase tracking-widest transition-all"

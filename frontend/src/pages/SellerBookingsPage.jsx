@@ -28,6 +28,7 @@ const SellerBookingsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [selectedBooking, setSelectedBooking] = useState(null);
+  const [filterTab, setFilterTab] = useState("Pending");
 
   // Cash payment states
   const [confirmModal, setConfirmModal] = useState(null);
@@ -364,7 +365,7 @@ const SellerBookingsPage = () => {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
         <div>
           <h1 className="text-3xl md:text-5xl font-black font-heading text-slate-900 dark:text-white tracking-tight">Incoming Bookings</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-xl">Track and manage reservations for your vehicles. Communicate with renters and coordinate pickups.</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-2 max-w-xl">Review and manage rental requests for your listed vehicles.</p>
         </div>
         <div className="flex gap-4">
           <div className="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center gap-3">
@@ -393,6 +394,24 @@ const SellerBookingsPage = () => {
       </div>
 
       {/* ---- Content ---- */}
+      <div className="mb-6 overflow-x-auto">
+        <div className="flex gap-2 min-w-max border-b border-slate-200 dark:border-slate-800 pb-1">
+          {["All", "Pending", "Approved", "Confirmed", "Rejected", "Completed"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setFilterTab(tab)}
+              className={`px-5 py-2.5 rounded-t-xl font-bold text-sm transition-colors ${
+                filterTab === tab
+                  ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900"
+                  : "text-slate-500 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-800"
+              }`}
+            >
+              {tab}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {loading ? (
         <div className="space-y-6">
           {[1, 2, 3].map((i) => (
@@ -401,7 +420,17 @@ const SellerBookingsPage = () => {
         </div>
       ) : bookings.length > 0 ? (
         <div className="space-y-6">
-          {bookings.map((booking) => {
+          {bookings
+            .filter((booking) => {
+              if (filterTab === "All") return true;
+              if (filterTab === "Pending") return booking.status === "pending-owner-approval";
+              if (filterTab === "Approved") return booking.status === "approved-awaiting-payment";
+              if (filterTab === "Confirmed") return booking.status === "confirmed" || booking.status === "confirmed-awaiting-cash-payment" || booking.status === "active";
+              if (filterTab === "Rejected") return booking.status === "rejected" || booking.status === "cancelled";
+              if (filterTab === "Completed") return booking.status === "completed";
+              return true;
+            })
+            .map((booking) => {
             const isCashPending =
               booking.paymentMethod === "Cash" &&
               booking.status === "confirmed-awaiting-cash-payment" &&
@@ -432,9 +461,17 @@ const SellerBookingsPage = () => {
                     <h3 className="text-xl font-bold text-slate-900 dark:text-white">{booking.vehicle?.name}</h3>
                     <div className="flex flex-wrap gap-2 mt-2">
                       {/* Status badge */}
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${getStatusStyle(booking.status)}`}>
-                        {humanizeStatus(booking.status)}
-                      </span>
+                      {(() => {
+                        const isAlreadyPaid = booking.paymentStatus === "paid";
+                        const effectiveStatus = isAlreadyPaid && !["active", "completed", "cancelled", "rejected"].includes(booking.status)
+                          ? "confirmed"
+                          : booking.status;
+                        return (
+                          <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${getStatusStyle(effectiveStatus)}`}>
+                            {humanizeStatus(effectiveStatus)}
+                          </span>
+                        );
+                      })()}
                       {/* Payment status badge */}
                       <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${
                         booking.paymentStatus === "paid"
@@ -548,6 +585,18 @@ const SellerBookingsPage = () => {
                     View Details
                   </button>
 
+                  {/* Request Vehicle Service - only when completed */}
+                  {booking.status === "completed" && (
+                    <button
+                      onClick={() => {
+                        window.location.href = `/request-mechanic?bookingId=${booking._id}&vehicleId=${booking.vehicle?._id}&source=seller`;
+                      }}
+                      className="flex-1 xl:w-44 py-3 bg-purple-50 dark:bg-purple-900/20 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-800/50 rounded-xl font-bold text-sm transition-colors hover:bg-purple-100 dark:hover:bg-purple-900/40"
+                    >
+                      Request Service
+                    </button>
+                  )}
+
                   {/* Mark as Paid — only for unverified cash bookings */}
                   {isCashPending && (
                     <button
@@ -574,14 +623,31 @@ const SellerBookingsPage = () => {
               </motion.div>
             );
           })}
+          {bookings.filter((booking) => {
+              if (filterTab === "All") return true;
+              if (filterTab === "Pending") return booking.status === "pending-owner-approval";
+              if (filterTab === "Approved") return booking.status === "approved-awaiting-payment";
+              if (filterTab === "Confirmed") return booking.status === "confirmed" || booking.status === "confirmed-awaiting-cash-payment" || booking.status === "active";
+              if (filterTab === "Rejected") return booking.status === "rejected" || booking.status === "cancelled";
+              if (filterTab === "Completed") return booking.status === "completed";
+              return true;
+          }).length === 0 && (
+            <div className="text-center py-20 bg-white dark:bg-slate-900 rounded-[2.5rem] border border-slate-200 dark:border-slate-800">
+              <Calendar size={48} className="mx-auto text-slate-300 dark:text-slate-600 mb-4" />
+              <h3 className="text-xl font-bold text-slate-900 dark:text-white">No {filterTab.toLowerCase()} bookings found</h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-2">There are currently no bookings in this category.</p>
+            </div>
+          )}
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-20 text-center border border-slate-200 dark:border-slate-800 border-dashed">
-          <div className="w-24 h-24 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Calendar size={48} className="text-slate-300" />
+        <div className="text-center py-32 bg-white dark:bg-slate-900 rounded-[3rem] border border-slate-200 dark:border-slate-800 shadow-sm">
+          <div className="w-20 h-20 bg-slate-50 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Calendar size={32} className="text-slate-400" />
           </div>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white mb-4">No Reservations</h2>
-          <p className="text-slate-500 dark:text-slate-400 mb-8 max-w-md mx-auto">You don't have any incoming bookings at the moment. Make sure your car details and pricing are competitive!</p>
+          <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight mb-2">No Bookings Yet</h2>
+          <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto mb-8">
+            When customers book your vehicles, the requests will appear here for you to manage.
+          </p>
         </div>
       )}
     </div>
@@ -589,4 +655,3 @@ const SellerBookingsPage = () => {
 };
 
 export default SellerBookingsPage;
-

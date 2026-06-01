@@ -97,8 +97,8 @@ const SellerMechanicRequestsPage = () => {
                     <CarFront size={28} />
                   </div>
                   <div>
-                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">{request.vehicle?.name}</h3>
-                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{request.serviceType}</p>
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white">{request.vehicle?.brand} {request.vehicle?.model}</h3>
+                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{request.issueType}</p>
                   </div>
                 </div>
                 {getStatusBadge(request.status)}
@@ -107,7 +107,7 @@ const SellerMechanicRequestsPage = () => {
               <div className="space-y-4 mb-8 relative z-10">
                  <div className="flex items-start gap-3">
                     <AlertCircle size={18} className="text-rose-500 shrink-0 mt-0.5" />
-                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">"{request.description}"</p>
+                    <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed italic">"{request.problemDescription}"</p>
                  </div>
                  <div className="grid grid-cols-2 gap-4">
                     <div className="flex items-center gap-2">
@@ -116,7 +116,7 @@ const SellerMechanicRequestsPage = () => {
                     </div>
                     <div className="flex items-center gap-2">
                        <Calendar size={14} className="text-slate-400" />
-                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{new Date(request.requestedDate).toLocaleDateString()}</span>
+                       <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{new Date(request.createdAt).toLocaleDateString()}</span>
                     </div>
                  </div>
               </div>
@@ -126,9 +126,9 @@ const SellerMechanicRequestsPage = () => {
                     <div className="w-8 h-8 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center text-slate-500">
                        <User size={14} />
                     </div>
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Request by {request.user?.name}</span>
+                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400">Request by {request.requestedBy?.name}</span>
                  </div>
-                 <button className="flex items-center gap-1 text-primary-500 font-bold text-sm hover:underline">
+                 <button onClick={() => window.location.href = `/mechanic-requests/${request._id}`} className="flex items-center gap-1 text-primary-500 font-bold text-sm hover:underline">
                     View Details <ChevronRight size={14} />
                  </button>
               </div>

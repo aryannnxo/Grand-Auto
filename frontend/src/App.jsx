@@ -25,9 +25,10 @@ import AdminRentalsPage from "./pages/AdminRentalsPage";
 import AdminPaymentsPage from "./pages/AdminPaymentsPage";
 import PaymentSuccessPage from "./pages/PaymentSuccessPage";
 import PaymentFailurePage from "./pages/PaymentFailurePage";
-import BookMechanicPage from "./pages/BookMechanicPage";
+import RequestMechanicPage from "./pages/RequestMechanicPage";
 import MyMechanicRequestsPage from "./pages/MyMechanicRequestsPage";
 import MechanicRequestDetailPage from "./pages/MechanicRequestDetailPage";
+import MechanicDashboardPage from "./pages/MechanicDashboardPage";
 import AdminMechanicsPage from "./pages/AdminMechanicsPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminUserDetailsPage from "./pages/AdminUserDetailsPage";
@@ -73,11 +74,13 @@ function App() {
         <Route path="dashboard" element={<SellerDashboardPage />} />
         <Route path="fleet" element={<SellerFleetPage />} />
         <Route path="bookings" element={<SellerBookingsPage />} />
+        <Route path="maintenance" element={<SellerMechanicRequestsPage />} />
         <Route path="messages" element={<ChatPage isNested={true} />} />
         <Route path="add-vehicle" element={<AddVehiclePage />} />
         <Route path="edit-vehicle/:id" element={<AddVehiclePage />} />
       </Route>
-      <Route path="/mechanic/book" element={<BookMechanicPage />} />
+      <Route path="/request-mechanic" element={<RequestMechanicPage />} />
+      <Route path="/mechanic/dashboard" element={<MechanicDashboardPage />} />
       <Route path="/mechanic/my-requests" element={<MyMechanicRequestsPage />} />
       <Route path="/mechanic-requests/:id" element={<MechanicRequestDetailPage />} />
       <Route path="/payment/success" element={<PaymentSuccessPage />} />

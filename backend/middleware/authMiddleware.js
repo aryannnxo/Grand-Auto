@@ -70,4 +70,12 @@ const verifiedOwner = (req, res, next) => {
   }
 };
 
-module.exports = { protect, admin, verifiedOwner };
+const mechanic = (req, res, next) => {
+  if (req.user && (req.user.role === "mechanic" || req.user.role === "admin")) {
+    next();
+  } else {
+    res.status(403).json({ msg: "Not authorized as a mechanic" });
+  }
+};
+
+module.exports = { protect, admin, verifiedOwner, mechanic };

@@ -12,7 +12,8 @@ import {
   ChevronLeft,
   PlusCircle,
   User,
-  MessageSquare
+  MessageSquare,
+  Wrench
 } from "lucide-react";
 
 const SellerLayout = () => {
@@ -30,6 +31,7 @@ const SellerLayout = () => {
     { path: "/seller/fleet", icon: CarFront, label: "My Fleet" },
     { path: "/seller/add-vehicle", icon: PlusCircle, label: "Add Car" },
     { path: "/seller/bookings", icon: Inbox, label: "Incoming Bookings" },
+    { path: "/seller/maintenance", icon: Wrench, label: "Maintenance" },
     { path: "/seller/messages", icon: MessageSquare, label: "Messages" },
     { path: "/profile", icon: User, label: "My Profile" },
   ];
@@ -110,6 +112,7 @@ const SellerLayout = () => {
                 if (p.includes("edit-vehicle")) return "Edit Vehicle";
                 if (p.includes("fleet")) return "My Fleet";
                 if (p.includes("bookings")) return "Bookings";
+                if (p.includes("maintenance")) return "Maintenance";
                 if (p.includes("messages")) return "Messages";
                 return "Overview";
               })()}
@@ -121,6 +124,7 @@ const SellerLayout = () => {
                 if (p.includes("edit-vehicle")) return "Edit Vehicle";
                 if (p.includes("fleet")) return "My Fleet";
                 if (p.includes("bookings")) return "Incoming Bookings";
+                if (p.includes("maintenance")) return "Fleet Maintenance";
                 if (p.includes("messages")) return "Messages";
                 return "Seller Dashboard";
               })()}

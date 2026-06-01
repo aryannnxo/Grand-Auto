@@ -538,8 +538,14 @@ router.put("/payments/:id/status", protect, admin, async (req, res) => {
     booking.paymentStatus = normalizedStatus;
 
     if (normalizedStatus === "paid") {
-      // Only update booking status if it's in a state that makes sense to confirm
-      if (["approved-awaiting-payment", "confirmed-awaiting-cash-payment"].includes(booking.status)) {
+      // When admin marks paid, promote booking to confirmed from ANY non-terminal state
+      const promotableStatuses = [
+        "pending-owner-approval",
+        "approved-awaiting-payment",
+        "confirmed-awaiting-cash-payment",
+        "pending"
+      ];
+      if (promotableStatuses.includes(booking.status)) {
         booking.status = "confirmed";
       }
       const paid = paidAmount !== undefined && paidAmount !== "" ? Number(paidAmount) : booking.totalPrice;

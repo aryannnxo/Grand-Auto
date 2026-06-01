@@ -257,17 +257,19 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden lg:flex items-center gap-6">
-            <Link to="/" className={getNavStyle("/")}>
-              Home
-            </Link>
-            <Link to="/listings" className={getNavStyle("/listings")}>
-              Fleet
-            </Link>
-
-
-
-            {isLoggedIn && !isVerifiedOwner && userRole !== "admin" && (
-              <Link to="/apply-owner" className={getNavStyle("/apply-owner")}>Become a Seller</Link>
+            {userRole === 'mechanic' ? (
+              <>
+                <Link to="/mechanic/dashboard" className={getNavStyle("/mechanic/dashboard")}>Dashboard</Link>
+                <Link to="/mechanic/my-requests" className={getNavStyle("/mechanic/my-requests")}>Jobs</Link>
+              </>
+            ) : (
+              <>
+                <Link to="/" className={getNavStyle("/")}>Home</Link>
+                <Link to="/listings" className={getNavStyle("/listings")}>Fleet</Link>
+                {isLoggedIn && !isVerifiedOwner && userRole !== "admin" && (
+                  <Link to="/apply-owner" className={getNavStyle("/apply-owner")}>Become a Seller</Link>
+                )}
+              </>
             )}
           </div>
         </div>
@@ -489,9 +491,9 @@ const Navbar = () => {
                           Profile
                         </Link>
 
-                        {(userRole === 'admin' || isVerifiedOwner) && (
+                        {(userRole === 'admin' || userRole === 'mechanic' || isVerifiedOwner) && (
                           <Link 
-                            to={userRole === 'admin' ? '/admin/dashboard' : '/seller/dashboard'} 
+                            to={userRole === 'admin' ? '/admin/dashboard' : userRole === 'mechanic' ? '/mechanic/dashboard' : '/seller/dashboard'} 
                             onClick={() => setProfileDropdownOpen(false)}
                             className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-slate-800 transition-colors text-sm font-medium"
                           >

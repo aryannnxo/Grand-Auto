@@ -64,7 +64,8 @@ const AdminDashboardPage = () => {
     { label: "Total Users", value: data?.totalUsers || 0, icon: Users, color: "text-blue-500", bg: "bg-blue-50 dark:bg-blue-900/10" },
     { label: "Active Fleet", value: data?.totalVehicles || 0, icon: CarFront, color: "text-purple-500", bg: "bg-purple-50 dark:bg-purple-900/10" },
     { label: "Active Rentals", value: data?.activeRentals || 0, icon: Activity, color: "text-rose-500", bg: "bg-rose-50 dark:bg-rose-900/10" },
-    { label: "Global Revenue", value: `Rs. ${data?.totalRevenue?.toLocaleString() || 0}`, icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-900/10" }
+    { label: "Global Revenue", value: `Rs. ${data?.totalRevenue?.toLocaleString() || 0}`, icon: DollarSign, color: "text-emerald-500", bg: "bg-emerald-50 dark:bg-emerald-900/10" },
+    { label: "Platform Commission (20%)", value: data?.totalRevenue ? `Rs. ${(data.totalRevenue * 0.2).toLocaleString()}` : "Rs. 0", icon: CreditCard, color: "text-indigo-500", bg: "bg-indigo-50 dark:bg-indigo-900/10" }
   ];
 
   if (loading) {

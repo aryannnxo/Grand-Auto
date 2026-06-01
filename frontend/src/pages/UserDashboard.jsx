@@ -15,13 +15,16 @@ const API = "http://localhost:5000";
 // ── Booking status badge ──────────────────────────────────────────────
 const StatusBadge = ({ status }) => {
   const map = {
-    pending:  { color: "amber",  icon: Clock,         label: "Pending" },
-    approved: { color: "emerald", icon: CheckCircle2, label: "Approved" },
-    rejected: { color: "rose",   icon: XCircle,       label: "Rejected" },
-    paid:     { color: "blue",   icon: CheckCircle2,  label: "Paid" },
-    completed:{ color: "slate",  icon: CheckCircle2,  label: "Completed" },
+    "pending-owner-approval":        { color: "amber",   icon: Clock,         label: "Pending Approval" },
+    "approved-awaiting-payment":     { color: "blue",    icon: CheckCircle2,  label: "Approved — Pay Now" },
+    "confirmed-awaiting-cash-payment": { color: "purple", icon: Clock,        label: "Awaiting Cash" },
+    "confirmed":                     { color: "emerald", icon: CheckCircle2,  label: "Confirmed" },
+    "active":                        { color: "emerald", icon: CheckCircle2,  label: "Active" },
+    "completed":                     { color: "slate",   icon: CheckCircle2,  label: "Completed" },
+    "cancelled":                     { color: "rose",    icon: XCircle,       label: "Cancelled" },
+    "rejected":                      { color: "rose",    icon: XCircle,       label: "Rejected" },
   };
-  const cfg = map[status] || map.pending;
+  const cfg = map[status] || { color: "slate", icon: Clock, label: status || "Unknown" };
   const Icon = cfg.icon;
   const c = cfg.color;
   return (
@@ -83,7 +86,7 @@ export default function UserDashboard() {
     try {
       const [userRes, bookingsRes, chatsRes] = await Promise.allSettled([
         axios.get(`${API}/api/users/me`,    { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${API}/api/bookings/my`, { headers: { Authorization: `Bearer ${token}` } }),
+        axios.get(`${API}/api/bookings/my-bookings`, { headers: { Authorization: `Bearer ${token}` } }),
         axios.get(`${API}/api/chats`,       { headers: { Authorization: `Bearer ${token}` } }),
       ]);
 
@@ -357,11 +360,12 @@ export default function UserDashboard() {
             <span className="w-1 h-5 bg-blue-500 rounded-full inline-block" />
             Quick Actions
           </h3>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
             <QuickBtn icon={Search}        label="Browse Fleet"          to="/listings"  color="blue"   />
             <QuickBtn icon={Edit3}         label="Edit Profile"          to="/profile"   color="violet" />
             <QuickBtn icon={Calendar}      label="Booking History"       to="/profile"   color="purple" />
             <QuickBtn icon={MessageSquare} label="Open Messages"         to="/messages"  color="cyan"   />
+            <QuickBtn icon={ShieldCheck}   label="Request Mechanic"      to="/profile"   color="emerald" />
           </div>
         </motion.div>
 

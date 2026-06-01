@@ -20,9 +20,10 @@ const ProfilePage = () => {
   const token = localStorage.getItem("token");
 
   const [user, setUser] = useState({ name: "", email: "", bio: "", profileImage: "" });
+
   const [bookings, setBookings] = useState([]);
   const [loadingBookings, setLoadingBookings] = useState(true);
-  
+
   const [isEditing, setIsEditing] = useState(false);
   const [nameInput, setNameInput] = useState("");
   const [bioInput, setBioInput] = useState("");
@@ -50,7 +51,7 @@ const ProfilePage = () => {
         setUser(res.data);
         setNameInput(res.data.name || "");
         setBioInput(res.data.bio || "");
-        
+
         localStorage.setItem("userId", res.data._id || "");
         localStorage.setItem("userName", res.data.name || "");
         localStorage.setItem("userEmail", res.data.email || "");
@@ -150,6 +151,19 @@ const ProfilePage = () => {
     window.location.reload();
   };
 
+  const handleCompleteTrip = async (bookingId) => {
+    try {
+      await axios.patch(
+        `${API}/api/bookings/${bookingId}/complete`,
+        {},
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setBookings(bookings.map(b => b._id === bookingId ? { ...b, status: "completed" } : b));
+    } catch (err) {
+      alert(err.response?.data?.msg || "Failed to complete trip. Please try again.");
+    }
+  };
+
   const totalBookings = bookings.length;
   const confirmedBookings = bookings.filter(b => ["confirmed", "active", "completed"].includes(b.status)).length;
   const pendingBookings = bookings.filter(b => ["pending-owner-approval", "approved-awaiting-payment", "confirmed-awaiting-cash-payment"].includes(b.status)).length;
@@ -194,10 +208,10 @@ const ProfilePage = () => {
         </div>
 
         <div className="flex flex-col lg:flex-row gap-6 items-start">
-          
+
           {/* Left Column: Minimal Profile Settings Card */}
           <aside className="w-full lg:w-[380px] flex-shrink-0">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}
               className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/50 p-6 sm:p-8 rounded-[2rem] shadow-sm relative overflow-hidden"
             >
@@ -206,9 +220,9 @@ const ProfilePage = () => {
                 <div className="relative inline-block group">
                   <div className="absolute inset-0 bg-gradient-to-tr from-primary-500 to-indigo-500 rounded-full blur-[8px] opacity-25 group-hover:opacity-45 transition-opacity" />
                   {user.profileImage ? (
-                    <img 
-                      src={`${API}${user.profileImage}`} 
-                      alt="Profile" 
+                    <img
+                      src={`${API}${user.profileImage}`}
+                      alt="Profile"
                       className="w-28 h-28 rounded-full object-cover border-2 border-white dark:border-slate-850 shadow-md relative z-10"
                     />
                   ) : (
@@ -216,13 +230,13 @@ const ProfilePage = () => {
                       {user.name?.charAt(0).toUpperCase() || "U"}
                     </div>
                   )}
-                  
+
                   <label className="absolute bottom-0 right-0 w-8 h-8 bg-slate-900 hover:bg-primary-600 text-white rounded-full flex items-center justify-center cursor-pointer shadow-lg border border-white dark:border-slate-800 transition-colors z-20 hover:scale-105">
                     <Camera size={12} strokeWidth={2.5} />
                     <input type="file" hidden accept="image/*" onChange={handleImageUpload} disabled={imageUploading} />
                   </label>
                 </div>
-                
+
                 <h2 className="text-xl font-black text-slate-850 dark:text-white mt-4 tracking-tight">{user.name || "Grand Auto User"}</h2>
                 <span className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">{user.email}</span>
               </div>
@@ -236,7 +250,7 @@ const ProfilePage = () => {
               {/* Form Fields */}
               <div className="space-y-5 mb-8">
                 <div className="space-y-1.5">
-                  <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500"><User size={12} className="mr-1.5"/> Full Name</label>
+                  <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500"><User size={12} className="mr-1.5" /> Full Name</label>
                   {!isEditing ? (
                     <div className="p-3 bg-slate-50/50 dark:bg-slate-950/20 rounded-xl border border-slate-200/50 dark:border-slate-800/40 text-xs font-semibold text-slate-800 dark:text-slate-200">{user.name || "Not provided"}</div>
                   ) : (
@@ -245,17 +259,17 @@ const ProfilePage = () => {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500"><Mail size={12} className="mr-1.5"/> Email Address</label>
+                  <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500"><Mail size={12} className="mr-1.5" /> Email Address</label>
                   <div className="p-3 bg-slate-50/30 dark:bg-slate-950/10 rounded-xl border border-slate-200/30 dark:border-slate-800/20 text-xs font-semibold text-slate-400 dark:text-slate-600 cursor-not-allowed select-none">{user.email || "Not provided"}</div>
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500"><FileText size={12} className="mr-1.5"/> Bio</label>
+                  <label className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-400 dark:text-slate-500"><FileText size={12} className="mr-1.5" /> Bio</label>
                   {!isEditing ? (
                     <div className="p-3 bg-slate-50/50 dark:bg-slate-950/20 rounded-xl border border-slate-200/50 dark:border-slate-800/40 text-xs font-semibold text-slate-700 dark:text-slate-400 min-h-[80px] whitespace-pre-wrap leading-relaxed">{user.bio || "Tell people a little about yourself."}</div>
                   ) : (
-                    <textarea 
-                      value={bioInput} onChange={(e) => setBioInput(e.target.value)} 
+                    <textarea
+                      value={bioInput} onChange={(e) => setBioInput(e.target.value)}
                       rows={3} className="w-full text-xs p-3 rounded-xl bg-slate-50/30 dark:bg-slate-950/20 border border-slate-200/50 dark:border-slate-800/40 text-slate-800 dark:text-slate-200 focus:outline-none focus:border-primary-500 transition-colors" placeholder="Write a short bio..."
                     />
                   )}
@@ -271,11 +285,11 @@ const ProfilePage = () => {
                   <Button variant="outline" className="w-full text-xs font-bold py-2.5 h-10 rounded-xl bg-transparent border-slate-200/60 hover:bg-slate-50 dark:border-slate-800/50 dark:hover:bg-slate-900/30 text-slate-700 dark:text-slate-300" onClick={() => setShowPassword(!showPassword)}>
                     <Lock size={14} className="mr-1.5" /> Security settings
                   </Button>
-                  {localStorage.getItem("userRole") === "admin" || localStorage.getItem("isVerifiedOwner") === "true" ? (
+                  {/* {localStorage.getItem("userRole") === "admin" || localStorage.getItem("isVerifiedOwner") === "true" ? (
                     <Button variant="outline" className="w-full text-xs font-bold py-2.5 h-10 rounded-xl bg-transparent border-slate-200/60 hover:bg-slate-50 dark:border-slate-800/50 dark:hover:bg-slate-900/30 text-slate-700 dark:text-slate-300" onClick={() => navigate("/dashboard")}>
                       <LayoutDashboard size={14} className="mr-1.5" /> Operation Dashboard
                     </Button>
-                  ) : null}
+                  // ): null} */}
                   <Button variant="ghost" className="w-full text-xs font-bold py-2.5 h-10 rounded-xl text-rose-500 hover:text-rose-600 hover:bg-rose-500/5 dark:hover:bg-rose-500/10" onClick={handleLogout}>
                     <LogOut size={14} className="mr-1.5" /> Sign Out
                   </Button>
@@ -292,7 +306,7 @@ const ProfilePage = () => {
                 {showPassword && (
                   <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="mt-6 pt-6 border-t border-slate-200/50 dark:border-slate-800/50 overflow-hidden">
                     <h4 className="flex items-center text-[10px] font-black uppercase tracking-widest text-slate-800 dark:text-white mb-4"><Lock size={12} className="mr-2 text-primary-500" /> Update Password</h4>
-                    
+
                     <div className="space-y-3 mb-5">
                       <Input type="password" placeholder="Current password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)} className="text-xs h-10 rounded-xl bg-slate-50/20" />
                       <Input type="password" placeholder="New password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)} className="text-xs h-10 rounded-xl bg-slate-50/20" />
@@ -320,7 +334,7 @@ const ProfilePage = () => {
 
           {/* Right Column: Bookings & Operations */}
           <main className="flex-1 min-w-0 w-full">
-            <motion.div 
+            <motion.div
               initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
               className="bg-white/70 dark:bg-slate-900/40 backdrop-blur-md border border-slate-200/60 dark:border-slate-800/50 p-6 sm:p-8 rounded-[2rem] shadow-sm min-h-[500px]"
             >
@@ -332,7 +346,7 @@ const ProfilePage = () => {
                   </div>
                   <h2 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Recent Bookings</h2>
                 </div>
-                
+
                 <Button variant="primary" className="text-xs font-bold h-10 px-4 rounded-xl bg-slate-900 hover:bg-slate-850 dark:bg-white dark:text-slate-950 dark:hover:bg-slate-100 shadow-sm" onClick={() => navigate('/listings')}>
                   Browse Fleet <ChevronRight size={14} className="ml-1" />
                 </Button>
@@ -356,104 +370,135 @@ const ProfilePage = () => {
               ) : (
                 <div className="space-y-4">
                   <AnimatePresence>
-                  {bookings.map((booking, i) => {
-                    const statusLabels = {
-                      "pending-owner-approval":        { label: "Pending Approval",       color: "bg-amber-100 text-amber-700 border-amber-200" },
-                      "approved-awaiting-payment":    { label: "Approved — Pay Now",       color: "bg-blue-100 text-blue-700 border-blue-200" },
-                      "confirmed":                     { label: "Confirmed",               color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-                      "confirmed-awaiting-cash-payment": { label: "Awaiting Cash Payment", color: "bg-purple-100 text-purple-700 border-purple-200" },
-                      "active":                        { label: "Active",                  color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
-                      "completed":                     { label: "Completed",               color: "bg-slate-100 text-slate-600 border-slate-200" },
-                      "cancelled":                     { label: "Cancelled",               color: "bg-rose-100 text-rose-600 border-rose-200" },
-                      "rejected":                      { label: "Rejected",                color: "bg-rose-100 text-rose-600 border-rose-200" },
-                    };
-                    const statusInfo = statusLabels[booking.status] || { label: booking.status, color: "bg-slate-100 text-slate-600 border-slate-200" };
-                    const canPay = booking.status === "approved-awaiting-payment";
-                    const isPending = booking.status === "pending-owner-approval";
-                    const isRejected = booking.status === "rejected";
+                    {bookings.map((booking, i) => {
+                      const statusLabels = {
+                        "pending-owner-approval": { label: "Pending Approval", color: "bg-amber-100 text-amber-700 border-amber-200" },
+                        "approved-awaiting-payment": { label: "Approved — Pay Now", color: "bg-blue-100 text-blue-700 border-blue-200" },
+                        "confirmed": { label: "Confirmed", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+                        "confirmed-awaiting-cash-payment": { label: "Awaiting Cash Payment", color: "bg-purple-100 text-purple-700 border-purple-200" },
+                        "active": { label: "Active", color: "bg-emerald-100 text-emerald-700 border-emerald-200" },
+                        "completed": { label: "Completed", color: "bg-slate-100 text-slate-600 border-slate-200" },
+                        "cancelled": { label: "Cancelled", color: "bg-rose-100 text-rose-600 border-rose-200" },
+                        "rejected": { label: "Rejected", color: "bg-rose-100 text-rose-600 border-rose-200" },
+                      };
 
-                    return (
-                      <motion.div 
-                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
-                        key={booking._id} 
-                        className="flex flex-col sm:flex-row gap-5 p-5 rounded-2xl bg-white dark:bg-slate-950/20 border border-slate-200/40 dark:border-slate-800/30 hover:border-slate-250 dark:hover:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300"
-                      >
-                        {/* Vehicle Photo */}
-                        <div className="w-full sm:w-40 h-32 rounded-xl overflow-hidden bg-slate-150 dark:bg-slate-850 flex-shrink-0 relative">
-                          {(() => {
-                            const imgPath = booking.vehicle?.images?.[0]?.url || booking.vehicle?.images?.[0] || booking.vehicle?.image;
-                            return imgPath ? (
-                              <img src={`${API}${imgPath}`} alt={booking.vehicle.name} className="w-full h-full object-cover" />
-                            ) : (
-                              <div className="w-full h-full flex items-center justify-center font-bold text-[10px] text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-900">No Image</div>
-                            );
-                          })()}
-                          <div className="absolute top-2 left-2">
-                             <span className={`text-[9px] uppercase tracking-widest font-black py-0.5 px-2 rounded-full border shadow-sm ${statusInfo.color}`}>
-                               {statusInfo.label}
-                             </span>
-                          </div>
-                        </div>
+                      // Safeguard: if payment is already paid, always show Confirmed
+                      // regardless of what booking.status says (handles legacy/sync issues)
+                      const isAlreadyPaid = (booking.paymentStatus || "").toLowerCase() === "paid";
+                      const effectiveStatus = isAlreadyPaid && !["active", "completed", "cancelled", "rejected"].includes(booking.status)
+                        ? "confirmed"
+                        : booking.status;
 
-                        {/* Booking Details */}
-                        <div className="flex-1 flex flex-col justify-between pt-1">
-                          <div>
-                            <h4 className="text-lg font-black text-slate-950 dark:text-white tracking-tight leading-none mb-1.5">
-                              {booking.vehicle?.brand} {booking.vehicle?.model}
-                            </h4>
-                            <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                              <CalendarDays size={14} /> 
-                              <span>{new Date(booking.startDate).toLocaleDateString()}</span>
-                              <span className="text-slate-300 dark:text-slate-800">•</span>
-                              <span>{new Date(booking.endDate).toLocaleDateString()}</span>
+                      const statusInfo = statusLabels[effectiveStatus] || { label: effectiveStatus, color: "bg-slate-100 text-slate-600 border-slate-200" };
+                      const canPay = booking.status === "approved-awaiting-payment" && !isAlreadyPaid;
+                      const isPending = booking.status === "pending-owner-approval" && !isAlreadyPaid;
+                      const isRejected = booking.status === "rejected";
+
+                      return (
+                        <motion.div
+                          initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}
+                          key={booking._id}
+                          className="flex flex-col sm:flex-row gap-5 p-5 rounded-2xl bg-white dark:bg-slate-950/20 border border-slate-200/40 dark:border-slate-800/30 hover:border-slate-250 dark:hover:border-slate-800 shadow-sm hover:shadow-md transition-all duration-300"
+                        >
+                          {/* Vehicle Photo */}
+                          <div className="w-full sm:w-40 h-32 rounded-xl overflow-hidden bg-slate-150 dark:bg-slate-850 flex-shrink-0 relative">
+                            {(() => {
+                              const imgPath = booking.vehicle?.images?.[0]?.url || booking.vehicle?.images?.[0] || booking.vehicle?.image;
+                              return imgPath ? (
+                                <img src={`${API}${imgPath}`} alt={booking.vehicle.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center font-bold text-[10px] text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-900">No Image</div>
+                              );
+                            })()}
+                            <div className="absolute top-2 left-2">
+                              <span className={`text-[9px] uppercase tracking-widest font-black py-0.5 px-2 rounded-full border shadow-sm ${statusInfo.color}`}>
+                                {statusInfo.label}
+                              </span>
                             </div>
                           </div>
-                          
-                          <div className="flex flex-wrap items-center justify-between gap-3 pt-4 mt-3 border-t border-slate-100 dark:border-slate-800/50">
-                             <div>
-                               <p className="text-[9px] uppercase tracking-widest font-black text-slate-400 mb-0.5">Total Fare</p>
-                               <div className="text-base font-extrabold text-primary-500">Rs. {booking.totalPrice?.toLocaleString()}</div>
-                             </div>
-                             <div className="flex items-center gap-2">
-                               {/* Pay Now — only when approved */}
-                               {canPay && (
-                                 <Button 
-                                   variant="primary" 
-                                   className="text-xs h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm"
-                                   onClick={() => navigate(`/pay/booking/${booking._id}`)}
-                                 >
-                                   Pay Now
-                                 </Button>
-                               )}
-                               {/* Awaiting approval message */}
-                               {isPending && (
-                                 <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
-                                   Awaiting owner approval
-                                 </span>
-                               )}
-                               {/* Rejected message */}
-                               {isRejected && (
-                                 <span className="text-[10px] font-bold text-rose-500 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl">
-                                   Booking was rejected
-                                 </span>
-                               )}
-                               <Button variant="outline" className="text-xs h-9 px-3 rounded-xl border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900/30 text-slate-700 dark:text-slate-300" onClick={() => navigate(`/vehicles/${booking.vehicle?._id}`)}>
-                                 Details <ChevronRight size={12} className="ml-1" />
-                               </Button>
-                             </div>
+
+                          {/* Booking Details */}
+                          <div className="flex-1 flex flex-col justify-between pt-1">
+                            <div>
+                              <h4 className="text-lg font-black text-slate-950 dark:text-white tracking-tight leading-none mb-1.5">
+                                {booking.vehicle?.brand} {booking.vehicle?.model}
+                              </h4>
+                              <div className="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                                <CalendarDays size={14} />
+                                <span>{new Date(booking.startDate).toLocaleDateString()}</span>
+                                <span className="text-slate-300 dark:text-slate-800">•</span>
+                                <span>{new Date(booking.endDate).toLocaleDateString()}</span>
+                              </div>
+                            </div>
+
+                            <div className="flex flex-wrap items-center justify-between gap-3 pt-4 mt-3 border-t border-slate-100 dark:border-slate-800/50">
+                              <div>
+                                <p className="text-[9px] uppercase tracking-widest font-black text-slate-400 mb-0.5">Total Fare</p>
+                                <div className="text-base font-extrabold text-primary-500">Rs. {booking.totalPrice?.toLocaleString()}</div>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                {/* Pay Now — only when approved */}
+                                {canPay && (
+                                  <Button
+                                    variant="primary"
+                                    className="text-xs h-9 px-4 rounded-xl bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm"
+                                    onClick={() => navigate(`/pay/booking/${booking._id}`)}
+                                  >
+                                    Pay Now
+                                  </Button>
+                                )}
+                                {/* Request Mechanic Help - only when not pending or rejected */}
+                                {(!isPending && !isRejected && booking.status !== "cancelled") && (
+                                  <Button
+                                    variant="outline"
+                                    className="text-xs h-9 px-3 rounded-xl border-purple-200 hover:bg-purple-50 text-purple-700 dark:border-purple-800 dark:hover:bg-purple-900/30 dark:text-purple-300"
+                                    onClick={() => navigate(`/request-mechanic?bookingId=${booking._id}&vehicleId=${booking.vehicle?._id}`)}
+                                  >
+                                    Request Mechanic Help
+                                  </Button>
+                                )}
+                                {/* Complete Trip Button */}
+                                {["confirmed", "active"].includes(booking.status) && (
+                                  <Button
+                                    variant="primary"
+                                    className="text-xs h-9 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm"
+                                    onClick={() => handleCompleteTrip(booking._id)}
+                                  >
+                                    Complete Trip
+                                  </Button>
+                                )}
+                                {/* Awaiting approval message */}
+                                {isPending && (
+                                  <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
+                                    Awaiting owner approval
+                                  </span>
+                                )}
+                                {/* Rejected message */}
+                                {isRejected && (
+                                  <span className="text-[10px] font-bold text-rose-500 bg-rose-50 border border-rose-200 px-3 py-1.5 rounded-xl">
+                                    Booking was rejected
+                                  </span>
+                                )}
+                                <Button variant="outline" className="text-xs h-9 px-3 rounded-xl border-slate-200 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-900/30 text-slate-700 dark:text-slate-300" onClick={() => navigate(`/vehicles/${booking.vehicle?._id}`)}>
+                                  Details <ChevronRight size={12} className="ml-1" />
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                        </motion.div>
+                      );
+                    })}
                   </AnimatePresence>
                 </div>
               )}
             </motion.div>
           </main>
-          
+
         </div>
       </main>
+        {/* Review Modal */}
+
+
       <Footer />
     </div>
   );
