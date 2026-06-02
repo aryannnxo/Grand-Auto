@@ -43,6 +43,14 @@ const LocationPickerMap = ({ latitude, longitude, onLocationSelect }) => {
     }
   };
 
+  const MapUpdater = ({ center }) => {
+    const map = useMapEvents({});
+    useEffect(() => {
+      if (center) map.flyTo(center, map.getZoom());
+    }, [center, map]);
+    return null;
+  };
+
   return (
     <div className="w-full h-64 md:h-80 rounded-xl overflow-hidden shadow-sm border border-slate-200 dark:border-slate-700 relative z-0 mt-4">
       <MapContainer center={initialPos} zoom={13} style={{ height: '100%', width: '100%', zIndex: 10 }}>
@@ -51,6 +59,7 @@ const LocationPickerMap = ({ latitude, longitude, onLocationSelect }) => {
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         <LocationMarker position={position} setPosition={handlePositionChange} />
+        <MapUpdater center={position} />
       </MapContainer>
     </div>
   );

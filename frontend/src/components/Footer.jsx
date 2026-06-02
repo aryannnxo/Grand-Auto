@@ -123,85 +123,7 @@ const Footer = () => {
       <div className="max-w-[1400px] mx-auto px-6 relative z-10">
 
         {/* 1. Top Section (Cards – 3 columns) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
 
-          {/* Card 1 – Booking */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            className="glass-panel p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl group transition-all duration-500 hover:border-primary-500/30"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-400 mb-6 group-hover:scale-110 transition-transform">
-              <Calendar size={24} />
-            </div>
-            <h3 className="text-xl font-black text-white mb-4 tracking-tight uppercase">About your booking</h3>
-            <div className="space-y-3">
-              <Link to={isLoggedIn ? "/profile" : "/login"} className="flex items-center justify-between text-slate-400 hover:text-white transition-colors group/item leading-tight">
-                <span className="text-sm font-bold">View / modify / cancel booking</span>
-                <ArrowRight size={16} className="-translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transition-all text-primary-500" />
-              </Link>
-              <Link to={isLoggedIn ? "/profile" : "/login"} className="flex items-center justify-between text-slate-400 hover:text-white transition-colors group/item leading-tight">
-                <span className="text-sm font-bold">Manage your booking</span>
-                <ArrowRight size={16} className="-translate-x-2 opacity-0 group-hover/item:translate-x-0 group-hover/item:opacity-100 transition-all text-primary-500" />
-              </Link>
-            </div>
-          </motion.div>
-
-          {/* Card 2 – Offers */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            className="glass-panel p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl group transition-all duration-500 hover:border-blue-500/30"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-400 mb-6 group-hover:scale-110 transition-transform">
-              <Star size={24} />
-            </div>
-            <h3 className="text-xl font-black text-white mb-4 tracking-tight uppercase">Exclusive offers</h3>
-            <p className="text-sm text-slate-400 mb-6 font-medium leading-relaxed">Sign up to receive our latest luxury offers and member-only rewards.</p>
-            <form onSubmit={handleSubscribe} className="relative overflow-hidden rounded-xl">
-               <AnimatePresence mode="wait">
-                 {!subscribed ? (
-                   <motion.div
-                     key="button"
-                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                     className="flex gap-2"
-                   >
-                     <input
-                        type="email" required placeholder="your@email.com"
-                        value={email} onChange={(e) => setEmail(e.target.value)}
-                        className="bg-white/5 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-blue-500/50 transition-all text-xs font-bold w-full"
-                     />
-                     <button type="submit" className="flex items-center justify-center bg-gradient-to-r from-primary-600 to-blue-600 text-white rounded-xl px-4 h-11 hover:shadow-[0_0_20px_rgba(75,107,251,0.4)] transition-all transform active:scale-95 shrink-0">
-                       <ArrowRight size={18} />
-                     </button>
-                   </motion.div>
-                 ) : (
-                   <motion.div
-                     key="success"
-                     initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -20, opacity: 0 }}
-                     className="flex items-center gap-2 text-emerald-400 font-black text-xs uppercase tracking-widest py-3"
-                   >
-                     <CheckCircle2 size={16} /> Welcome to the club!
-                   </motion.div>
-                 )}
-               </AnimatePresence>
-            </form>
-          </motion.div>
-
-          {/* Card 3 – Mobile App */}
-          <motion.div
-            whileHover={{ y: -5 }}
-            className="glass-panel p-8 rounded-[2rem] bg-white/5 border border-white/10 backdrop-blur-md shadow-2xl group transition-all duration-500 hover:border-emerald-500/30"
-          >
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 mb-6 group-hover:scale-110 transition-transform">
-              <Smartphone size={24} />
-            </div>
-            <h3 className="text-xl font-black text-white mb-4 tracking-tight uppercase">Smart mobility. Anytime.</h3>
-            <div className="flex flex-col sm:flex-row gap-3">
-              <AppStoreButton store="google" />
-              <AppStoreButton store="apple" />
-            </div>
-          </motion.div>
-
-        </div>
 
         {/* Divider */}
         <div className="w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent mb-16 px-6"></div>
@@ -209,14 +131,14 @@ const Footer = () => {
         {/* 2. Main Footer Links (Mapped Data) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8 mb-20 px-4">
           {footerData.map((section, idx) => (
-             <div key={idx} className="space-y-6">
-                <h4 className="text-sm font-black text-white uppercase tracking-[0.2em]">{section.title}</h4>
-                <ul className="space-y-3">
-                  {section.links.map((link, j) => (
-                    <FooterLink key={j} to={link.to}>{link.label}</FooterLink>
-                  ))}
-                </ul>
-             </div>
+            <div key={idx} className="space-y-6">
+              <h4 className="text-sm font-black text-white uppercase tracking-[0.2em]">{section.title}</h4>
+              <ul className="space-y-3">
+                {section.links.map((link, j) => (
+                  <FooterLink key={j} to={link.to}>{link.label}</FooterLink>
+                ))}
+              </ul>
+            </div>
           ))}
         </div>
 
@@ -256,11 +178,11 @@ const Footer = () => {
         {/* 4. Bottom Bar */}
         <div className="pt-10 pb-8 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-8 mt-10">
           <div className="flex items-center gap-6">
-            <Link to="/" onClick={() => window.scrollTo({top: 0, behavior: 'smooth'})} className="flex items-center gap-2 group">
+            <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex items-center gap-2 group">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-primary-600 to-indigo-600 flex items-center justify-center text-white">
                 <svg viewBox="0 0 24 24" fill="none" className="w-4 h-4 text-white">
-                  <path d="M20.5 12A8.5 8.5 0 1 1 12 3.5c2.3 0 4.4.9 6 2.3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
-                  <path d="M12 12h8.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"/>
+                  <path d="M20.5 12A8.5 8.5 0 1 1 12 3.5c2.3 0 4.4.9 6 2.3" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
+                  <path d="M12 12h8.5" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" />
                 </svg>
               </div>
               <span className="text-lg font-black text-white tracking-tighter">GRAND AUTO</span>
@@ -280,11 +202,11 @@ const Footer = () => {
             </div>
 
             <div className="flex items-center gap-6 pl-6 border-l border-white/10 hidden sm:flex">
-                {['Sitemap', 'Legal', 'Cookies', 'Contact'].map(item => (
-                  <a key={item} href="#" className="text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-white transition-colors">
-                    {item}
-                  </a>
-                ))}
+              {['Sitemap', 'Legal', 'Cookies', 'Contact'].map(item => (
+                <a key={item} href="#" className="text-[10px] font-black uppercase tracking-widest text-slate-600 hover:text-white transition-colors">
+                  {item}
+                </a>
+              ))}
             </div>
           </div>
         </div>

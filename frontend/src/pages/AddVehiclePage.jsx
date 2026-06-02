@@ -92,11 +92,26 @@ const AddVehiclePage = () => {
   };
 
   const handleUseMyLocation = () => {
+    setError("");
     if ("geolocation" in navigator) {
       navigator.geolocation.getCurrentPosition(
-        (pos) => setForm(prev => ({ ...prev, latitude: pos.coords.latitude, longitude: pos.coords.longitude })),
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          try {
+            const res = await axios.get(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`);
+            const address = res.data.address;
+            const locName = address.city || address.town || address.village || address.suburb || res.data.display_name.split(',')[0];
+            setForm(prev => ({ ...prev, latitude: lat, longitude: lng, location: locName }));
+          } catch (err) {
+            console.error("Geocoding error", err);
+            setForm(prev => ({ ...prev, latitude: lat, longitude: lng }));
+          }
+        },
         () => setError("Failed to get location. Please allow location access.")
       );
+    } else {
+      setError("Geolocation is not supported by this browser.");
     }
   };
 

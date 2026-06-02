@@ -298,29 +298,6 @@ export default function MechanicDashboardPage() {
           <p className="text-slate-500 font-medium">View cars needing service and manage your assigned jobs.</p>
         </motion.div>
 
-        {/* Stats row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          {[
-            { label: "Available", value: availableRequests.length, icon: Eye, color: "blue", desc: "Awaiting assignment" },
-            { label: "Active Jobs", value: activeJobsCount, icon: Wrench, color: "orange", desc: "In your queue" },
-            { label: "Completed", value: completedCount, icon: CheckCircle2, color: "emerald", desc: "Jobs done" },
-            { label: "Total Assigned", value: myJobs.length, icon: Package, color: "purple", desc: "All time" },
-          ].map(stat => (
-            <motion.div
-              key={stat.label}
-              initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-              className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm"
-            >
-              <div className={`w-10 h-10 rounded-xl bg-${stat.color}-50 dark:bg-${stat.color}-900/20 flex items-center justify-center mb-3`}>
-                <stat.icon size={20} className={`text-${stat.color}-500`} />
-              </div>
-              <p className="text-2xl font-black text-slate-900 dark:text-white">{stat.value}</p>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider">{stat.label}</p>
-              <p className="text-[11px] text-slate-400 mt-0.5">{stat.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-
         {/* Main Tabs */}
         <div className="flex gap-2 mb-6">
           {[

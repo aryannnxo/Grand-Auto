@@ -260,7 +260,6 @@ const Navbar = () => {
             {userRole === 'mechanic' ? (
               <>
                 <Link to="/mechanic/dashboard" className={getNavStyle("/mechanic/dashboard")}>Dashboard</Link>
-                <Link to="/mechanic/my-requests" className={getNavStyle("/mechanic/my-requests")}>Jobs</Link>
               </>
             ) : (
               <>

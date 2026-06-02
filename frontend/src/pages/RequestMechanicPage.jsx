@@ -6,7 +6,7 @@ import {
   Wrench, AlertTriangle, Car, ClipboardCheck, MapPin,
   CalendarDays, FileText, ChevronLeft, CheckCircle2,
   Shield, Lock, Clock, Navigation, Check, Battery,
-  Wind, Droplet, Star, Phone, Camera, ArrowRight, Home, User
+  Wind, Droplet, Star, Phone, Camera, ArrowRight, Home, User, X
 } from "lucide-react";
 import Navbar from "../components/Navbar";
 import { Button } from "../components/ui/Button";
@@ -52,6 +52,7 @@ const RequestMechanicPage = () => {
     description: "",
     isEmergency: false,
     uploadedPhotos: false,
+    images: [],
     contactName: "",
     contactPhone: ""
   });
@@ -62,6 +63,40 @@ const RequestMechanicPage = () => {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    if (files.length === 0) return;
+    
+    const readers = files.map(file => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = error => reject(error);
+      });
+    });
+
+    Promise.all(readers).then(base64Images => {
+      setFormData(prev => ({
+        ...prev,
+        images: [...(prev.images || []), ...base64Images],
+        uploadedPhotos: true
+      }));
+    }).catch(error => console.error("Error reading files:", error));
+  };
+  
+  const removeImage = (index) => {
+    setFormData(prev => {
+      const newImages = [...prev.images];
+      newImages.splice(index, 1);
+      return {
+        ...prev,
+        images: newImages,
+        uploadedPhotos: newImages.length > 0
+      };
+    });
   };
 
   const handleNextStep = () => {
@@ -104,7 +139,8 @@ ${formData.description}
         problemDescription: finalDescription,
         location: `${formData.location}, ${formData.city}`,
         isEmergency: formData.isEmergency,
-        contactPhone: formData.contactPhone
+        contactPhone: formData.contactPhone,
+        images: formData.images
       };
 
       const endpoint = source === "seller" ? `${API}/api/mechanics/seller` : `${API}/api/mechanics`;
@@ -171,10 +207,10 @@ ${formData.description}
 
       <Navbar variant="dark" />
 
-      <main className="max-w-[1300px] mx-auto px-4 md:px-8 pt-12 relative z-10 flex flex-col lg:flex-row gap-10 xl:gap-16">
+      <main className="max-w-[1300px] mx-auto px-4 md:px-8 pt-12 relative z-10 flex justify-center pb-12">
 
-        {/* Left Side: Booking Flow */}
-        <div className="flex-1 w-full lg:max-w-[750px]">
+        {/* Booking Flow */}
+        <div className="w-full max-w-3xl">
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-10">
             <button onClick={() => navigate(-1)} className="group flex items-center text-sm font-semibold text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white mb-8 transition-colors">
               <div className="w-8 h-8 rounded-full border border-slate-200 dark:border-slate-800 flex items-center justify-center mr-3 group-hover:bg-slate-100 dark:group-hover:bg-slate-800 transition-colors">
@@ -344,13 +380,47 @@ ${formData.description}
                     </div>
                   </div>
 
-                  {/* Mock Photo Upload */}
-                  <div onClick={() => setFormData({ ...formData, uploadedPhotos: !formData.uploadedPhotos })} className={`cursor-pointer border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors ${formData.uploadedPhotos ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/10' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}>
-                    <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${formData.uploadedPhotos ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
-                      {formData.uploadedPhotos ? <CheckCircle2 size={24} /> : <Camera size={24} />}
+                  {/* Functional Photo Upload */}
+                  <div>
+                    <label className="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2 uppercase tracking-wider text-[11px]">Issue Photos</label>
+                    
+                    {formData.images && formData.images.length > 0 && (
+                      <div className="flex flex-wrap gap-4 mb-4">
+                        {formData.images.map((img, idx) => (
+                          <div key={idx} className="relative w-24 h-24 rounded-xl overflow-hidden border border-slate-200 dark:border-slate-700 group">
+                            <img src={img} alt={`Issue ${idx}`} className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => removeImage(idx)}
+                              className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <X size={14} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    <div 
+                      onClick={() => document.getElementById('photo-upload').click()} 
+                      className={`cursor-pointer border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors ${formData.uploadedPhotos ? 'border-blue-500 bg-blue-50/50 dark:bg-blue-900/10' : 'border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700'}`}
+                    >
+                      <input 
+                        id="photo-upload" 
+                        type="file" 
+                        multiple 
+                        accept="image/*" 
+                        className="hidden" 
+                        onChange={handleImageUpload} 
+                      />
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center mb-3 ${formData.uploadedPhotos ? 'bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-400'}`}>
+                        {formData.uploadedPhotos ? <CheckCircle2 size={24} /> : <Camera size={24} />}
+                      </div>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                        {formData.uploadedPhotos ? 'Add More Photos' : 'Upload Issue Photos'}
+                      </p>
+                      <p className="text-xs text-slate-500">Helps our mechanic prepare the right tools.</p>
                     </div>
-                    <p className="text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">{formData.uploadedPhotos ? 'Photos Uploaded Successfully' : 'Upload Issue Photos'}</p>
-                    <p className="text-xs text-slate-500">Helps our mechanic prepare the right tools.</p>
                   </div>
 
                   <div className="pt-6 mt-6 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
@@ -362,104 +432,6 @@ ${formData.description}
                 </motion.div>
               )}
             </AnimatePresence>
-          </div>
-        </div>
-
-        {/* Right Side: Premium Summary Panel */}
-        <div className="w-full lg:w-[380px] xl:w-[420px] shrink-0 lg:sticky lg:top-32 mb-10">
-          <div className="bg-white/90 dark:bg-[#111111]/90 backdrop-blur-2xl rounded-[2rem] p-6 lg:p-8 border border-slate-200/50 dark:border-slate-800/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.08)] relative overflow-hidden">
-
-            {/* Decorative glow */}
-            <div className="absolute -top-24 -right-24 w-48 h-48 bg-blue-500/10 rounded-full blur-[60px] pointer-events-none" />
-
-            <h3 className="text-lg font-bold font-heading mb-6 text-slate-900 dark:text-white flex items-center justify-between uppercase tracking-wider text-[13px]">
-              Service Overview
-            </h3>
-
-            {/* Assigned Mechanic Preview (Mock) */}
-            <div className="bg-slate-50 dark:bg-[#161616] rounded-2xl p-5 mb-8 border border-slate-100 dark:border-slate-800 relative overflow-hidden">
-              <div className="absolute top-0 right-0 p-3 flex items-center gap-1 text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/20 rounded-bl-xl uppercase tracking-widest">
-                <Shield size={10} /> Certified
-              </div>
-              <div className="flex items-center gap-4">
-                <div className="w-14 h-14 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden border-2 border-white dark:border-[#161616] shadow-sm">
-                  <img src="https://i.pravatar.cc/150?u=mechanic" alt="Mechanic" className="w-full h-full object-cover" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-900 dark:text-white text-base">Searching Local Hub...</h4>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Matching premium expert</p>
-                  <div className="flex items-center gap-1 mt-1.5 text-xs font-bold text-amber-500">
-                    <Star size={12} fill="currentColor" />
-                    <Star size={12} fill="currentColor" />
-                    <Star size={12} fill="currentColor" />
-                    <Star size={12} fill="currentColor" />
-                    <Star size={12} fill="currentColor" />
-                    <span className="text-slate-400 ml-1 font-medium">(Top Rated)</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {formData.serviceType ? (
-              <div className="space-y-6">
-                <div>
-                  <h4 className="font-bold text-lg text-slate-900 dark:text-white">{getActiveService()?.label}</h4>
-                  <p className="text-sm text-slate-500 dark:text-slate-400">{getActiveService()?.desc}</p>
-                </div>
-
-                {/* Itemized Estimate */}
-                <div className="space-y-3 pt-5 border-t border-slate-100 dark:border-slate-800">
-                  <div className="flex justify-between items-center text-sm font-medium text-slate-600 dark:text-slate-300">
-                    <span>Service Fee</span>
-                    <span className="text-slate-900 dark:text-white">NPR {getActiveService()?.price.toLocaleString()}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm font-medium text-slate-600 dark:text-slate-300">
-                    <span>Travel Fee</span>
-                    <span className="text-slate-900 dark:text-white">NPR 500</span>
-                  </div>
-                  <AnimatePresence>
-                    {formData.isEmergency && (
-                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} className="flex justify-between items-center text-sm font-bold text-red-600 dark:text-red-400">
-                        <span>Emergency Surcharge</span>
-                        <span>NPR 1,500</span>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                  <div className="flex justify-between items-center text-sm font-medium text-slate-500 dark:text-slate-400 pt-1">
-                    <span>Tax (13%)</span>
-                    <span>NPR {Math.round((getActiveService()?.price + 500 + (formData.isEmergency ? 1500 : 0)) * 0.13).toLocaleString()}</span>
-                  </div>
-
-                  <div className="flex justify-between items-end pt-5 mt-2 border-t border-slate-100 dark:border-slate-800">
-                    <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Est. Total</span>
-                    <span className="text-2xl font-black text-slate-900 dark:text-white leading-none tracking-tight">
-                      NPR {Math.round(calculateTotal()).toLocaleString()}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div className="py-10 text-center flex flex-col items-center border-2 border-dashed border-slate-200 dark:border-slate-800 rounded-2xl">
-                <Wrench size={32} className="text-slate-300 dark:text-slate-700 mb-3" />
-                <p className="text-sm font-bold text-slate-400">Select a service to see<br />estimated costs.</p>
-              </div>
-            )}
-
-            {/* Trust Indicators */}
-            <div className="grid grid-cols-2 gap-y-4 mt-8 pt-6 border-t border-slate-100 dark:border-slate-800/50">
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-                <Clock className="text-blue-500" size={16} /> 24/7 Support
-              </div>
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-                <Shield className="text-emerald-500" size={16} /> Verified Experts
-              </div>
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-                <Navigation className="text-blue-500" size={16} /> Live Tracking
-              </div>
-              <div className="flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-400">
-                <Lock className="text-emerald-500" size={16} /> Secure Payment
-              </div>
-            </div>
           </div>
         </div>
       </main>
